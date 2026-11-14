@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Field Shift: Adapting Farms with NASA Data</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#14352a"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f4f0;--card:#fff;--ink:#17261f;--mute:#5d6778;--line:#d6ddd5;--ok:#0f7a4d;--mid:#a16207;--bad:#b42318;--acc:#1b6b4a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101a15;--card:#17241d;--ink:#e8efe9;--mute:#98a3b5;--line:#2b3d33;--ok:#4ade80;--mid:#facc15;--bad:#f87171;--acc:#5ad1a0}}
+:root[data-theme=dark]{--bg:#101a15;--card:#17241d;--ink:#e8efe9;--mute:#98a3b5;--line:#2b3d33;--ok:#4ade80;--mid:#facc15;--bad:#f87171;--acc:#5ad1a0}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Bricolage Grotesque",system-ui,sans-serif}
+main{max-width:1000px;margin:0 auto;padding:26px 16px 60px}
+h1{font-size:clamp(30px,6vw,50px);line-height:1.05;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:21px;margin:30px 0 10px}p{margin:0 0 10px;max-width:70ch}.mute{color:var(--mute)}.sm{font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+select,input[type=number]{width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+button,.btn{font:inherit;font-weight:600;background:var(--ink);color:var(--bg);border:0;border-radius:6px;padding:8px 14px;cursor:pointer;display:inline-block}
+.tag{display:inline-block;font-size:13px;font-weight:600;padding:2px 9px;border-radius:99px;border:1px solid currentColor}
+.tag.Strong{background:#15803d;border-color:#15803d;color:#fff}.tag.Reasonable{background:#facc15;border-color:#facc15;color:#3d2c00}.tag.Weak{background:#dc2626;border-color:#dc2626;color:#fff}
+.tag.Strong::before{content:"✓ "}.tag.Reasonable::before{content:"! "}.tag.Weak::before{content:"✗ "}
+ul{margin:6px 0 0;padding-left:20px}li{margin:2px 0}
+.seq{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.step{border-left:4px solid var(--acc);padding:6px 12px;background:var(--card);border-radius:0 8px 8px 0}
+.bar{height:14px;background:var(--acc);border-radius:3px}.row{display:flex;gap:10px;align-items:center}
+.warn{border-left:4px solid var(--mid);padding-left:12px}
+h2{border-left:5px solid var(--acc);padding-left:10px}
+.hero{display:flex;gap:16px;align-items:center;background:#14352a;color:#fff;border-radius:14px;padding:20px 22px;margin-bottom:14px}
+.hero h1{color:#fff;margin:0}.hero p{margin:4px 0 0;color:#cfe6da}
+.logo{font-size:38px;width:66px;height:66px;border-radius:16px;background:#1b6b4a;display:grid;place-items:center;flex:none}
+.pill{display:inline-block;margin-top:8px;font-size:13px;font-weight:600;padding:2px 10px;border-radius:99px;background:#ffffff26}
+.sr{position:absolute;left:-9999px}
+input[type=search]{width:100%;font:inherit;font-size:17px;padding:13px 14px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink)}
+input[type=search]:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px;margin:12px 0 6px}
+.tiles button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:14px}
+.tiles button span{font-size:28px;line-height:1.1}.tiles small{font-weight:400;color:var(--mute)}
+.tiles button:hover{border-color:var(--acc)}
+.hit{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-top:8px}
+th{background:var(--bg);font-size:13px}.card{box-shadow:0 1px 2px #0000000d}
+.opt{background:var(--card);border:1px solid var(--line);border-left-width:5px;border-radius:10px;margin-top:8px}
+.opt.Strong,.opt.Reasonable,.opt.Weak{border-left-width:8px}.opt.Strong{border-left-color:#15803d}.opt.Reasonable{border-left-color:#facc15}.opt.Weak{border-left-color:#dc2626}
+.opt summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;font-weight:600;list-style:none}
+.opt summary::-webkit-details-marker{display:none}
+.opt summary:focus-visible{outline:3px solid var(--acc);outline-offset:2px;border-radius:8px}
+.oname::before{content:"▸ ";color:var(--mute)}.opt[open] .oname::before{content:"▾ "}
+.odet{padding:0 14px 12px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0}
+.back,.alt{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.desc{font-size:17px;color:var(--mute);max-width:62ch;margin:4px 0 0}
+.page h2:first-of-type{margin-top:12px}
+.hb{background:#ffffff26;color:#fff;border:1px solid #ffffff55}
+.rb{height:14px;background:var(--acc);border-radius:3px;flex:none}
+:root{--rain:#2563eb;--rain2:#93c5fd;--heat:#ea580c;--soil:#a16207;--leaf:#16a34a}.cR{background:var(--rain)}.cR2{background:var(--rain2)}.cH{background:var(--heat)}.cS{background:var(--soil)}.cL{background:var(--leaf)}.rb.part{opacity:.5}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin:0 4px 0 10px}.sw:first-child{margin-left:0}
+button:disabled{opacity:.6;cursor:wait}
+.seg{display:inline-flex;border:1px solid #ffffff55;border-radius:8px;overflow:hidden}.seg .hb{border:0;border-radius:0}
+.hb[aria-pressed=true]{background:#fff;color:#14352a}
+.pnav{display:flex;gap:12px;position:sticky;bottom:0;background:var(--bg);margin-top:24px;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.pnav button{flex:1;padding:13px;font-size:16px}
+:root{--sel:#e3f1ea}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--sel:#1d3a2c}}
+:root[data-theme=dark]{--sel:#1d3a2c}
+.wq{font-size:22px;font-weight:800;margin:2px 0 10px;line-height:1.2}
+.wtop{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--mute);font-weight:600}
+.big{display:flex;align-items:center;gap:12px;width:100%;min-height:58px;padding:12px 16px;margin:8px 0;font-size:18px;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:12px;text-align:left}
+.big.pri{background:var(--acc);color:#fff;border-color:var(--acc);justify-content:center}
+.big[aria-pressed=true],.ct[aria-pressed=true]{border-color:var(--acc);background:var(--sel)}
+.ctiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 14px}
+.ct{background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:10px 4px;font-size:14px;line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:76px;text-align:center}
+.ct span{font-size:26px;line-height:1}
+.wnav{display:flex;gap:10px;margin-top:14px}.wnav button{flex:1;min-height:54px;font-size:17px}
+.err{color:var(--bad);font-size:15px;font-weight:600;margin:6px 0 0}
+.ct small{font-size:12px;font-weight:400;line-height:1.2}.rech{margin:18px 0 8px;font-size:19px;font-weight:800}.clist{display:flex;flex-direction:column;gap:6px;margin:6px 0;border-top:2px dashed var(--line);padding-top:8px}.clist[hidden]{display:none}
+.cl{display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:10px 14px;min-height:50px;font-size:16px;font-weight:600}
+.cl span{font-size:22px;line-height:1}.cl .pfm{margin-left:auto;font-size:13px}.cl[aria-pressed=true]{border-color:var(--acc);background:var(--sel)}.pfm{color:var(--bad);font-weight:700}.pfm::before{content:"✗ "}
+ol.nx{margin:6px 0 0;padding-left:22px}ol.nx li{margin:8px 0}
+.lnk{background:none;color:var(--acc);text-decoration:underline;padding:8px 0;font-size:15px;font-weight:600;display:block}
+.why{font-size:15px;margin:6px 0 0;padding:8px 10px;border-left:4px solid var(--bad);background:var(--card);border-radius:6px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:12px 0}
+.plan>summary{list-style:none;cursor:pointer;padding:14px 16px}
+.plan>summary::-webkit-details-marker{display:none}
+.plan>summary:focus-visible{outline:3px solid var(--acc);outline-offset:2px;border-radius:12px}
+.ptitle{font-size:14px;color:var(--mute);font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.pcrops{font-size:20px;font-weight:800;margin:4px 0 8px;line-height:1.25}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font-size:14px;font-weight:600;padding:3px 10px;border-radius:99px}
+.cg{background:#dcf2e5;color:#0b5c37}.ca{background:#fbefd5;color:#6e4705}.cr{background:#fde2df;color:#8f1a11}
+.pmore{font-size:14px;color:var(--mute);margin-top:8px}.plan[open] .pmore{display:none}
+.pdet{padding:2px 16px 14px;border-top:1px solid var(--line)}.pdet h4{font-size:16px;margin:12px 0 2px}
+.nasa{background:var(--sel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:6px}
+.nasa ul{padding-left:20px}
+.rep h3{font-size:17px;margin:14px 0 4px}.rep ul{margin-top:2px}.best{border:2px solid var(--acc);border-radius:10px;padding:8px 12px;margin:6px 0}
+@media print{body *{visibility:hidden}#report,#report *{visibility:visible}#report{position:absolute;left:0;top:0;width:100%;border:0;box-shadow:none}}
+.adv{margin-top:14px}.adv>summary{cursor:pointer;color:var(--mute);font-size:14px;font-weight:600}.adv button,.adv .btn{margin:8px 8px 0 0}
+.rk{position:relative;flex:1;height:18px;background:var(--bg);border:1px solid var(--line);border-radius:4px}.rk>i{position:absolute;left:0;top:0;bottom:0;border-radius:3px}.rk>b{position:absolute;top:-5px;bottom:-5px;border-left:2px dashed var(--ink)}
+.zone{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}.zone div{border:2px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;font-weight:600;font-size:14px;line-height:1.3}.zone .on{border-color:var(--acc);background:var(--sel)}.zone small{font-weight:400}
+.rule{border-top:1px solid var(--line);padding-top:12px;margin-top:12px}.rule>p:first-child{font-weight:800;margin:0 0 4px}
+tr.sK{background:rgba(37,99,235,.10)}tr.sR{background:rgba(124,58,237,.10)}tr.sZ{background:rgba(234,88,12,.11)}tr.sA{background:rgba(100,116,139,.12)}
+#map{height:300px;border-radius:12px;isolation:isolate;border:1px solid var(--line)}#map[hidden]{display:none}
+.leaflet-tooltip.mtip{background:rgba(255,255,255,.85);border:0;box-shadow:none;color:#334155;font-weight:600;padding:2px 6px}.leaflet-tooltip.mtip.on{background:#15803d;color:#fff;font-weight:800;font-size:14px}.leaflet-tooltip.mtip::before{display:none}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:8px;background:#14352a;color:#fff;padding:8px 12px}
+.tb{background:#ffffff1f;color:#fff;border:1px solid #ffffff40;border-radius:8px;min-height:44px;min-width:48px;padding:6px 12px;font-size:16px}#tbMenu{margin-left:auto;font-size:22px;line-height:1}
+.tbt{flex:1;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.menu{position:fixed;top:64px;right:12px;z-index:40;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px #0003;padding:6px;width:min(290px,calc(100vw - 24px));max-height:calc(100vh - 80px);overflow:auto}
+.menu button{display:flex;align-items:center;gap:12px;width:100%;background:none;color:var(--ink);text-align:left;padding:11px 12px;font-size:16px;border-radius:8px}.menu button:hover{background:var(--sel)}
+.menu .ml{display:flex;gap:6px;padding:6px 0 0;border-top:1px solid var(--line);margin-top:4px}.menu .ml button{justify-content:center;border:1px solid var(--line)}
+.sp{display:inline-block;padding:2px 9px;border-radius:99px;font-size:13px;font-weight:600;white-space:nowrap;color:#fff}tr.sK .sp{background:#2563eb}tr.sR .sp{background:#7c3aed}tr.sZ .sp{background:#ea580c}tr.sA .sp{background:#64748b}
+</style></head>
+<body>
+<div class="topbar"><button id="tbHome" class="tb">🏠 <span>Home</span></button><span class="tbt" id="tbt">DesertCrop Navigator</span><button id="tbMenu" class="tb" aria-label="Menu" aria-expanded="false" aria-controls="menu">☰</button></div>
+<div id="menu" class="menu" hidden>
+<button data-m="home"><span aria-hidden="true">🏠</span><span>Home</span></button><button data-m="plans"><span aria-hidden="true">🌾</span><span>My plans</span></button><button data-m="report"><span aria-hidden="true">📄</span><span>My report</span></button><button data-m="field"><span aria-hidden="true">📍</span><span>Farm details</span></button><button data-m="plan"><span aria-hidden="true">🌱</span><span>All crop options</span></button><button data-m="soil"><span aria-hidden="true">🧪</span><span>Soil</span></button><button data-m="climate"><span aria-hidden="true">🛰️</span><span>NASA climate</span></button><button data-m="actions"><span aria-hidden="true">🛡️</span><span>Actions</span></button><button data-m="money"><span aria-hidden="true">💰</span><span>Economics</span></button><button data-m="rules"><span aria-hidden="true">📋</span><span>Crop rules</span></button><button data-m="about"><span aria-hidden="true">ℹ️</span><span>About DesertCrop Navigator</span></button>
+<div class="ml"><button data-l="en">English</button><button data-l="hi">हिन्दी</button></div></div>
+<main>
+<header class="hero"><div class="logo" aria-hidden="true">🌾</div><div><h1>DesertCrop Navigator</h1><p>Helps farmers in Jodhpur, Barmer and Sikar choose what to grow next, using NASA weather and satellite data.</p><div class="row" style="margin-top:10px;flex-wrap:wrap"><div class="seg" role="group" aria-label="Language / भाषा"><button id="l-en" class="hb">English</button><button id="l-hi" class="hb">हिन्दी</button></div></div></div></header>
+<div class="card" id="wiz">
+ <div id="w1">
+  <div class="wtop"><span>Step 1 of 4</span></div>
+  <p class="wq">Where is your field?</p>
+  <button class="big pri" id="gps">📍 Use my location</button>
+  <p class="sm mute" style="margin:0">Your location is rounded to about 10 km and only used to ask NASA for the weather there.</p>
+  <p class="err" id="gpsmsg" aria-live="polite"></p>
+  <p class="sm mute" style="margin:12px 0 0">or tap your district</p>
+  <button class="big" data-d="Jodhpur">🗺️ Jodhpur</button><button class="big" data-d="Barmer">🗺️ Barmer</button><button class="big" data-d="Sikar">🗺️ Sikar</button>
+ </div>
+ <div id="w2" hidden>
+  <div class="wtop"><span>Step 2 of 4</span><span id="wloc1"></span></div>
+  <p class="sm" id="wloc" style="margin:4px 0 0"></p>
+  <p class="wq">What do you usually grow?</p>
+  <p class="sm mute" style="margin:0 0 8px">Only crops that can suit your area in each season are shown.</p>
+  <p class="sm" style="margin:0;font-weight:600">Monsoon season (kharif)</p>
+  <p class="sm mute" id="knone" hidden>No crop on our list suits this season here. Pick yours from the list below.</p>
+  <div class="ctiles" id="ktiles"></div>
+  <div class="clist" id="kmore" hidden></div>
+  <p class="why" id="kwhy" hidden></p>
+  <p class="sm" style="margin:14px 0 0;font-weight:600">Winter season (rabi)</p>
+  <p class="sm mute" id="rfirst">Pick the monsoon crop first.</p>
+  <div id="rbox" hidden>
+  <p class="sm mute" id="rnone" hidden>No crop on our list suits this season here. Pick yours from the list below.</p>
+  <div class="ctiles" id="rtiles"></div>
+  <div class="clist" id="rmore" hidden></div>
+  <p class="why" id="rwhy" hidden></p>
+  </div>
+  <p class="err" id="w2err" aria-live="polite"></p>
+  <div class="wnav"><button class="alt" data-wb="1">← Back</button><button id="w2next">Next →</button></div>
+ </div>
+ <div id="w3" hidden>
+  <div class="wtop"><span>Step 3 of 4</span></div>
+  <p class="wq">Water for this field?</p>
+  <button class="big" data-w="rain">🌧️ Rain only</button><button class="big" data-w="lim">💧 Some irrigation</button><button class="big" data-w="irr">🚿 Enough irrigation</button>
+  <p class="err" id="w3err" aria-live="polite"></p>
+  <div class="wnav"><button class="alt" data-wb="2">← Back</button><button id="w3next">Next →</button></div>
+ </div>
+ <div id="w4" hidden>
+  <div class="wtop"><span>Step 4 of 4</span></div>
+  <p class="wq">What is your soil like?</p>
+  <div class="ctiles" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+   <button class="ct" data-soil="s"><span>🏜️</span>Sandy<small class="mute">Loose, water drains fast</small></button><button class="ct" data-soil="l"><span>🟫</span>Loamy<small class="mute">Soft and crumbly</small></button>
+   <button class="ct" data-soil="h"><span>🧱</span>Heavy (clay)<small class="mute">Sticky when wet, cracks when dry</small></button><button class="ct" data-soil="u"><span>❓</span>Not sure</button></div>
+  <p class="wq">Do you see a white salt crust on the soil?</p>
+  <div class="ctiles">
+   <button class="ct" data-crust="y"><span>⚪</span>Yes</button><button class="ct" data-crust="n"><span>🚫</span>No</button><button class="ct" data-crust="u"><span>❓</span>Not sure</button></div>
+  <button class="big pri" id="wgo">Show my plans →</button>
+  <div class="wnav"><button class="alt" data-wb="3">← Back</button></div>
+  <p class="sm mute" style="margin-top:10px">Have a Soil Health Card? Add its numbers later from the 🧪 Soil button.</p>
+ </div>
+ <div id="wdone" hidden>
+  <p class="wq" style="margin-bottom:4px">Your field</p>
+  <p id="wsum" style="font-size:17px;margin:0 0 8px"></p>
+  <div id="here" class="why" style="border-left-color:var(--acc);margin:0 0 10px" hidden>
+   <p id="heremsg" style="margin:0 0 8px"></p>
+   <button class="big pri" id="hereyes">✅ Yes, my field is here</button>
+   <button class="big" id="hereno">No, keep my saved field</button>
+  </div>
+  <button class="big pri" id="wshow">Show my plans →</button>
+  <button class="big" id="wrep">📄 My farm report</button>
+  <button class="big" id="gps2">📍 Use my location</button>
+  <p class="sm mute" style="margin:0">Tap this when you are standing in your field. Your location is rounded to about 10 km and only used to ask NASA for the weather there.</p>
+  <p class="sm mute" id="gps2msg" aria-live="polite" style="margin:4px 0 0"></p>
+  <button class="big" id="wedit">✏️ Change answers</button>
+ </div>
+</div>
+<p class="sm mute" style="margin:18px 0 0;font-weight:600">More tools</p>
+<nav class="tiles" aria-label="Jump to a section">
+<button data-t="Your three crop plans"><span>🌾</span>My plans</button>
+<button data-t="My farm report"><span>📄</span>My report</button>
+<button data-t="More farm details"><span>📍</span>Farm details</button>
+<button data-t="rotation plan"><span>🌱</span>All crop options</button>
+<button data-t="Soil health"><span>🧪</span>Soil</button>
+<button data-t="Climate adaptation with NASA"><span>🛰️</span>NASA climate</button>
+<button data-t="Adaptation actions"><span>🛡️</span>Actions</button>
+<button data-t="Economics"><span>💰</span>Economics</button>
+<button data-t="Crop rules"><span>📋</span>Crop rules</button></nav>
+
+<h2>Your three crop plans</h2>
+<div id="next" class="card"></div>
+<div id="nasa" class="nasa"></div>
+<div id="plans"></div>
+<div class="row" style="margin:6px 0;flex-wrap:wrap"><button id="toreport">📄 See my farm report</button><button id="share" class="alt">📤 Share my plans</button></div>
+<h2>My farm report</h2>
+<div id="report" class="card rep"></div>
+<div class="row" style="margin:6px 0;flex-wrap:wrap"><button id="rprint">🖨️ Print or save as PDF</button><button id="rshare" class="alt">📤 Share report (PDF)</button></div>
+<h2>More farm details</h2>
+<div class="card"><div class="grid">
+ <div><label for="dist">District</label><select id="dist"><option value="Jodhpur">Jodhpur</option><option value="Barmer">Barmer</option><option value="Sikar">Sikar</option></select></div>
+ <div><label for="season">Next season</label><select id="season"><option value="K">Kharif (monsoon)</option><option value="R">Rabi (winter)</option><option value="Z">Zaid (summer)</option></select></div>
+ <div><label for="prev">Previous crop</label><select id="prev"></select></div>
+ <div><label for="water">Water access</label><select id="water"><option value="rain">Rainfed only</option><option value="lim">Limited irrigation</option><option value="irr">Reliable irrigation</option></select></div>
+ <div><label for="tex">Soil texture</label><select id="tex"><option value="u">Not sure</option><option value="s">Sandy</option><option value="l">Loamy</option><option value="h">Heavy (clay)</option></select></div>
+</div></div>
+
+<h2>Farming system and farmer profile</h2>
+<div class="card"><div class="grid">
+<div><label for="sys">Farming system</label><select id="sys"><option value="open">Open field</option><option value="hort">Horticulture and orchards</option><option value="prot">Protected (polyhouse, shade net)</option><option value="agro">Agroforestry, trees and fodder</option></select></div>
+<div><label for="inv">Investment capacity</label><select id="inv"><option value="l">Low</option><option value="m" selected>Medium</option><option value="h">High</option></select></div>
+<div><label for="cr">Credit access</label><select id="cr"><option value="y">Credit available</option><option value="n">No credit</option></select></div>
+<div><label for="mk">Market access</label><select id="mk"><option value="n">Market nearby</option><option value="f">Market far away</option></select></div>
+<div><label for="lb">Labour</label><select id="lb"><option value="a">Available</option><option value="s">Scarce</option></select></div>
+<div><label for="rk">Risk tolerance</label><select id="rk"><option value="l">Low</option><option value="m" selected>Medium</option><option value="h">High</option></select></div>
+</div></div><h2>Crop rotation plan</h2>
+<p class="mute sm">Four seasons ahead, picking the best fit each time and carrying the choice forward as the previous crop.</p>
+<div class="seq" id="seq"></div>
+<div class="row" style="margin:10px 0"><button id="cp">Copy plan</button></div>
+<h2>Options for the next season</h2>
+<div class="search"><label for="q" class="sr">Search crops</label><input id="q" type="search" placeholder="Type a crop name to check it: bajra, ber, cumin"><div id="qr" aria-live="polite"></div></div>
+<p class="sm mute" style="margin-top:10px">Only crops that are a good fit for your field are listed. Tap a crop to see why.</p>
+<div id="opts"></div>
+<h2>Soil health</h2>
+<div class="card"><p class="sm" style="margin:0 0 10px">Copy these numbers from your Soil Health Card or soil test report. Leave a box empty if you do not have it.</p><div class="grid">
+ <div><label for="oc">Organic carbon (%) from soil test</label><input type="number" id="oc" step="0.01" min="0" placeholder="optional"></div>
+ <div><label for="ph">Soil pH</label><input type="number" id="ph" step="0.1" min="3" max="11" placeholder="optional"></div>
+ <div><label for="ec">EC (dS/m)</label><input type="number" id="ec" step="0.1" min="0" placeholder="optional"></div>
+</div></div>
+<div class="card" id="soil"></div>
+<h2>Climate adaptation with NASA data</h2>
+<p id="note" class="warn sm" hidden>Preview only: these Jodhpur rainfall figures are made-up placeholders, not NASA data. Tap "Check for latest district data" to load the real NASA data.</p>
+<div class="card" id="clim"></div>
+<div class="card"><p style="font-weight:800;margin:0 0 8px">🗺️ Where the NASA data comes from</p><div id="map" hidden></div><p class="sm mute" id="mapnote" style="margin:8px 0 0"></p></div>
+<div class="card"><p><button id="chk">↻ Check for latest district data</button></p><p id="upd" class="sm" aria-live="polite"></p><p class="sm mute">The app checks NASA for new rain and heat data each time it opens with internet.</p></div>
+
+<h2>Adaptation actions</h2><div class="card" id="act"></div>
+<h2>Economics (your own numbers)</h2>
+<div class="card"><p class="sm mute">This app holds no price or cost data. Enter figures from your records or local mandi and the app only does the arithmetic. Results are not forecasts.</p><div class="grid">
+<div><label for="e1">Area (acres)</label><input type="number" id="e1" min="0" step="0.1"></div>
+<div><label for="e2">Cost of cultivation per acre (₹)</label><input type="number" id="e2" min="0"></div>
+<div><label for="e3">Expected yield per acre</label><input type="number" id="e3" min="0" step="0.1"></div>
+<div><label for="e4">Expected price per unit of yield (₹)</label><input type="number" id="e4" min="0" step="0.1"></div>
+<div><label for="e5">Capital cost: structure, drip, orchard set-up (₹)</label><input type="number" id="e5" min="0"></div>
+<div><label for="e6">Useful life of capital (years)</label><input type="number" id="e6" min="1"></div></div>
+<div id="eo" class="sm" style="margin-top:10px"></div></div>
+<h2>Crop rules used</h2>
+<div class="card" id="nrules"></div>
+<p class="sm mute" style="margin:0 0 12px">The 80% line follows IMD, and the arid zone is the official farming zone used by ICAR. Both still need checking with your KVK or CAZRI (Central Arid Zone Research Institute).</p>
+<details class="card" id="rdet"><summary>Starter rules for every crop (not verified)</summary><p class="sm mute">Check each row against Rajasthan advisories and correct the table in the code.</p><p class="sm">Season: Kharif = monsoon (June to October), Rabi = winter (October to March), Zaid = summer (March to June). Any season = can be grown all year.</p><p class="sm">Family: crops of the same family get the same pests and diseases. N-fixing: legumes, which add nitrogen to the soil.</p><div id="rt" style="overflow-x:auto"></div><button id="rc">Copy rules as CSV</button></details>
+<h2 id="abouth">About DesertCrop Navigator</h2>
+<div class="card" id="aboutc">
+<p><b>👩‍🌾 Who it is for:</b> farmers in Jodhpur, Barmer and Sikar districts of Rajasthan.</p>
+<p><b>🌱 What it does:</b> you answer 4 short questions about your field: place, usual crops, water and soil. The app then shows the best crops for next season and compares three crop plans: what you grow now, a plan that saves water, and a plan that builds soil.</p>
+<p><b>🤝 How it helps:</b> you see which crops suit your field this year and why, the usual yield in your district, and what to check with your KVK before changing crops. It works in Hindi and English, and keeps working without internet once it has opened.</p>
+<p style="margin:0"><b>🛰️ How it uses NASA data:</b></p>
+<ul class="sm">
+<li>Rain, heat and soil moisture: NASA POWER, for your location (rounded to about 10 km) or a farmland point in your district. Checked each time you open the app with internet.</li>
+<li>Field greenness: NASA's HLS satellite pictures (from Landsat and Sentinel-2) of farmland in your district, showing when fields are green or bare.</li>
+<li>These feed the crop ratings: for example, in a dry year, crops that need little water rate higher.</li></ul></div>
+<h2>Disclaimer</h2>
+<p class="sm mute">Ratings come from simple general farming rules, not local recommendations. They do not know your market, seed, pests or sowing dates. Check every plan with your Krishi Vigyan Kendra or agriculture university before acting.</p>
+<p class="sm mute">These crop rules have not yet been checked by agriculture experts.</p>
+</main>
+<script>
+const C0=[
+{n:"Bajra (pearl millet)",s:"K",f:"Cereal",nf:0,w:1,salt:2,t:"Very drought-hardy cereal."},
+{n:"Moth bean",s:"K",f:"Legume",nf:1,w:1,salt:2,t:"Hardy legume, suits light soils."},
+{n:"Guar",s:"K",f:"Legume",nf:1,w:1,salt:2,t:"Legume, tolerates dry spells."},
+{n:"Sesame",s:"K",f:"Pedaliaceae",nf:0,w:1,salt:1,t:"Low water need, dislikes waterlogging and salt."},
+{n:"Cotton",s:"K",f:"Malvaceae",nf:0,w:3,salt:3,t:"High water demand, tolerates some salinity."},
+{n:"Mustard",s:"R",f:"Brassica",nf:0,w:2,salt:2,t:"Moderate water need, common rabi oilseed."},
+{n:"Gram (chickpea)",s:"R",f:"Legume",nf:1,w:2,salt:1,t:"Legume, sensitive to salinity."},
+{n:"Wheat",s:"R",f:"Cereal",nf:0,w:3,salt:2,t:"Needs dependable irrigation."},
+{n:"Cumin",s:"R",f:"Apiaceae",nf:0,w:2,salt:1,t:"Spice crop sensitive to salinity and humid, disease-prone weather."}];
+const X=[
+["Sorghum (jowar)","K","Cereal",0,1,2,"open",1,"Drought-tolerant grain and fodder cereal."],
+["Maize","K","Cereal",0,2,1,"open",1,"Needs more moisture than bajra, sensitive to salinity."],
+["Mung bean","K","Legume",1,1,1,"open",1,"Short-duration legume."],
+["Cowpea","K","Legume",1,1,2,"open",1,"Legume for grain, pods or fodder."],
+["Groundnut","K","Legume",1,2,1,"open",2,"Oilseed legume for light soils, sensitive to salinity."],
+["Castor","K","Euphorbiaceae",0,1,2,"open",2,"Hardy oilseed."],
+["Soybean","K","Legume",1,2,1,"open",1,"Legume oilseed for the wetter south-east."],
+["Sunflower","K","Asteraceae",0,2,2,"open",2,"Oilseed with moderate water need."],
+["Barley","R","Cereal",0,1,3,"open",1,"Handles salinity and limited water better than wheat."],
+["Taramira (rocket)","R","Brassica",0,1,2,"open",1,"Low-input rabi oilseed on residual moisture."],
+["Isabgol (psyllium)","R","Plantaginaceae",0,1,2,"open",2,"Medicinal seed crop, sensitive to rain at maturity."],
+["Coriander","R","Apiaceae",0,2,1,"open",2,"Spice and leaf crop."],
+["Fenugreek (methi)","R","Legume",1,2,1,"open",1,"Legume spice and leaf crop."],
+["Field pea","R","Legume",1,2,1,"open",1,"Rabi legume."],
+["Fennel (saunf)","R","Apiaceae",0,2,1,"open",2,"Spice crop."],
+["Ber","A","Rhamnaceae",0,1,2,"hort",2,"Hardy orchard fruit of arid regions."],
+["Pomegranate","A","Lythraceae",0,2,2,"hort",3,"Higher-value orchard needing reliable drip water."],
+["Date palm","A","Palm",0,2,3,"hort",3,"Tolerates salinity, high establishment cost."],
+["Aonla (amla)","A","Phyllanthaceae",0,1,2,"hort",2,"Hardy orchard fruit."],
+["Bael","A","Rutaceae",0,1,2,"hort",2,"Drought-hardy fruit tree."],
+["Lasora (gonda)","A","Boraginaceae",0,1,2,"hort",1,"Hardy fruit and vegetable tree."],
+["Guava","A","Myrtaceae",0,2,2,"hort",2,"Orchard fruit needing regular water."],
+["Kagzi lime","A","Rutaceae",0,2,1,"hort",2,"Citrus, salinity-sensitive."],
+["Aloe vera","A","Asphodelaceae",0,1,2,"hort",2,"Medicinal crop, low water need, market dependent."],
+["Henna (mehndi)","A","Lythraceae",0,1,2,"hort",1,"Hardy perennial shrub, market dependent."],
+["Chilli","K","Solanaceae",0,2,1,"hort",2,"Spice vegetable needing irrigation."],
+["Okra","K","Malvaceae",0,2,2,"hort",2,"Fruit vegetable."],
+["Onion","R","Amaryllidaceae",0,2,1,"hort",2,"Bulb vegetable, salinity-sensitive."],
+["Watermelon / muskmelon","Z","Cucurbit",0,2,2,"hort",2,"Summer melons on sandy soils with irrigation."],
+["Cucumber (polyhouse)","A","Cucurbit",0,2,1,"prot",3,"Needs structure, cooling and good-quality water."],
+["Capsicum (polyhouse)","A","Solanaceae",0,2,1,"prot",3,"High investment, strong climate control needed."],
+["Tomato (polyhouse)","A","Solanaceae",0,2,1,"prot",3,"High investment, needs ventilation and fertigation."],
+["Khejri","A","Legume",1,1,3,"agro",1,"Native nitrogen-fixing tree for agroforestry."],
+["Rohida","A","Bignoniaceae",0,1,2,"agro",1,"Native timber tree, slow growing."],
+["Sewan grass","A","Grass",0,1,2,"agro",1,"Native perennial range grass for grazing."],
+["Dhaman grass","A","Grass",0,1,2,"agro",1,"Perennial pasture grass."],
+["Berseem","R","Legume",1,3,1,"agro",2,"Irrigated rabi fodder legume."],
+["Lucerne","A","Legume",1,3,2,"agro",2,"Perennial irrigated fodder legume."],
+["Fodder sorghum","K","Cereal",0,1,2,"agro",1,"Monsoon fodder."],
+["Cowpea fodder","K","Legume",1,1,2,"agro",1,"Legume fodder."],
+["Napier grass","A","Grass",0,3,2,"agro",2,"High-yield irrigated fodder."]];
+const C=[...C0.map(c=>({...c,sys:"open",inv:c.n==="Cotton"?2:1})),...X.map(a=>({n:a[0],s:a[1],f:a[2],nf:a[3],w:a[4],salt:a[5],sys:a[6],inv:a[7],t:a[8]}))];
+const ALL=[...C.map(c=>c.n),"Fallow / none"];
+const SN={K:"Kharif",R:"Rabi",Z:"Zaid (summer)"},SYSN={open:"open field",hort:"horticulture",prot:"protected cultivation",agro:"agroforestry and fodder"};
+const $=i=>document.getElementById(i);
+$("prev").innerHTML=ALL.map(n=>`<option value="${n}">${n}</option>`).join(""); // value stays English when the text is shown in Hindi
+let D=null,F={};
+// A year is complete when its data reaches 31 December. Part-years (like 2026 so far) are shown but left out of the averages.
+const full=c=>!c.last_day||/-12-31$/.test(c.last_day);
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fd=(s,withYear)=>{if(!s)return"";const p=s.split("-");return +p[2]+" "+MON[+p[1]-1]+(withYear===false?"":" "+p[0])};
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const LSG=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},LSS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let LIVE=LSG("fsLive"),UPD="none",MINE=LSG("fsMine");
+// Where the rain, heat and soil figures come from: the farmer's own location if they used it, else the district's farmland point.
+const climFor=dn=>{if(FARM&&FARM.lat!=null&&FARM.dist===dn&&MINE&&MINE.lat===FARM.lat&&MINE.lon===FARM.lon&&MINE.climate)return{c:MINE.climate,own:true};const d=D&&D.districts&&D.districts[dn];return d&&d.climate?{c:d.climate,own:false}:null};
+// Dry year: rain so far below 80% of usual = IMD's "deficient" rain (20% or more below normal).
+// Dry area: the official NARP Arid Western Zone (RJ-1: Barmer, Jodhpur, Churu, Jaisalmer), per the ICAR-CRIDA district plans.
+const DRY_YEAR_PCT=80,ARID_ZONE=["Jodhpur","Barmer"];
+const cv=dn=>{const s=climFor(dn||$("dist").value);if(!s)return null;const d={climate:s.c},ys=Object.keys(d.climate).filter(y=>d.climate[y].rain_mm!=null&&full(d.climate[y])),r=ys.map(y=>d.climate[y].rain_mm);if(r.length<3)return null;const m=r.reduce((a,b)=>a+b)/r.length;const sd=Math.sqrt(r.reduce((a,b)=>a+(b-m)**2,0)/r.length);return{r,m,cv:sd/m,ys}};
+function score(c,prev,st){let s=0,why=[];const p=C.find(x=>x.n===prev);
+ if(p){if(p.f===c.f){s-=3;why.push("Same crop family as the previous crop: carries over pests and diseases and draws the same nutrients.")}
+  else if(p.nf&&!c.nf){s+=1;why.push("Follows a legume, which leaves some nitrogen behind.")}
+  if(!p.nf&&c.nf){s+=2;why.push("Adds a nitrogen-fixing legume to the rotation.")}}
+ else if(c.nf){s+=1;why.push("Legume after a fallow helps rebuild soil nitrogen.")}
+ const w=st.water,wt={rain:[0,2,-1,-4],lim:[0,1,1,-2],irr:[0,1,1,1]}[w][c.w];s+=wt; // enough irrigation: +1 for every crop (user's decision, 12 Nov 2026)
+ if(wt>0)why.push(w==="irr"?"You have enough irrigation for this crop.":"Water need matches your water access.");if(wt<0)why.push(c.w===3?"High water demand is risky with this water access.":"Moderate water demand is a stretch without more irrigation.");
+ if(st.tex==="s"&&c.w===3){s-=1;why.push("Sandy soil holds little water, which hurts thirsty crops.")}
+ if(st.ec!=null&&st.ec>4){const e=[0,-3,-1,0][c.salt];s+=e;if(e<0)why.push("Your EC reading suggests salinity, and this crop is "+(c.salt===1?"sensitive":"only moderately tolerant")+".");else why.push("Better tolerance of the salinity your EC reading suggests.")}
+ // A white salt crust seen by the farmer (start question, 12 Nov 2026) counts like a salty soil test, unless a test was entered.
+ else if(st.ec==null&&st.crust){const e=[0,-3,-1,0][c.salt];s+=e;if(e<0)why.push("You see a white salt crust, a sign of salty soil, and this crop is "+(c.salt===1?"sensitive":"only moderately tolerant")+".");else why.push("Better tolerance of the salt your soil shows (white crust).")}
+ if(st.oc!=null&&st.oc<0.5&&c.nf){s+=1;why.push("Low organic carbon: legumes and residues help the soil.")}
+ if(st.cv!=null&&st.cv>=0.3){if(c.w===1){s+=1;why.push("Rainfall in the NASA record swings widely between years, which favours drought-hardy crops.")}if(c.w===3){s-=1;why.push("Rainfall swings widely between years, adding risk for a high-demand crop.")}}
+ // NASA rules approved 12 Nov 2026; changed the same day to IMD's 80% line and the official arid zone. Still to check with KVK or CAZRI.
+ if(st.rainPct!=null&&st.rainPct<DRY_YEAR_PCT){if(c.w===1){s+=1;why.push(`Needs little water in a dry year: this year's rain so far is ${st.rainPct}% of usual (NASA).`)}if(c.w===3){s-=1;why.push(`A thirsty crop in a dry year: this year's rain so far is ${st.rainPct}% of usual (NASA).`)}}
+ if(st.arid&&st.water==="rain"&&c.s==="R"&&c.w===2){s-=1;why.push("Arid western zone (official farming zone), so little moisture is left for a winter crop that needs medium water.")}
+ if(F.inv==="l"&&c.inv===3){s-=3;why.push("High investment against a low investment capacity.")}
+ if(F.cr==="n"&&c.inv===3){s-=1;why.push("High up-front cost and no credit access.")}
+ if(F.rk==="l"&&c.inv===3){s-=1;why.push("Larger financial downside than your risk tolerance suggests.")}
+ if(F.lb==="s"&&c.inv>=2){s-=1;why.push("More labour-intensive, and you report scarce labour.")}
+ if(F.mk==="f"&&/Tomato|Capsicum|Cucumber|Okra|melon|Chilli/.test(c.n)){s-=1;why.push("Perishable produce with a distant market.")}
+ return{s,why}}
+function veg(){const d=D&&D.districts&&D.districts[$("dist").value];if(!d)return"";const o=(d.ndvi||[]).filter(x=>x.ndvi!=null&&x.valid_pct>=50),by={};o.forEach(x=>{const y=x.date.slice(0,4);(by[y]=by[y]||[]).push(x.ndvi)});const ys=Object.keys(by).sort();let h="<h3 style=\"font-size:17px;margin:14px 0 6px\">Vegetation (NDVI) and heat</h3>";if(!ys.length)return h+"<p class=\"mute sm\">No NDVI observations with at least 50% valid pixels for this district.</p>";
+return h+ys.map(y=>{const a=by[y],m=a.reduce((p,q)=>p+q)/a.length,k=(d.climate||{})[y],t=(k||{}).mean_tmax_c,p=k&&!full(k);return `<div class="row sm"><span style="width:44px;flex:none">${y}</span><div class="rb cL${p?" part":""}" style="width:${Math.max(m,0)*55}%"></div><span>NDVI ${m.toFixed(2)}, ${a.length} obs${a.length<5?" (few, treat with caution)":""}${t!=null?", mean max "+t+" °C":""} ${p?'<span class="mute">so far</span>':""}</span></div>`}).join("")+"<p class=\"sm mute\">Yearly means of observations with at least 50% valid pixels. NDVI measures greenness and is affected by crop type, growth stage and soil background, so it is context and not a yield forecast.</p>"+vegMonths()}
+// Greenness for each month of the year (all years together, each satellite date counted once): shows when fields are bare.
+function vegMonths(){const N=nasaFacts($("dist").value);if(!N||!N.mon||!N.mon.some(x=>x!=null))return"";const mx=Math.max(...N.mon.filter(x=>x!=null));
+ return "<h3 style=\"font-size:17px;margin:16px 0 6px\">Greenness by month (all years)</h3>"+N.mon.map((v,i)=>`<div class="row sm"><span style="width:64px;flex:none">${MON[i]}</span>${v==null?'<span class="mute">no clear picture</span>':`<div class="rb cL" style="width:${v/mx*55}%"></div><span>${v.toFixed(2)}</span>`}</div>`).join("")+"<p class=\"sm mute\">Low = bare fields. High = green crops.</p>"}
+function eco(){const g=i=>+$(i).value||0,A=g("e1"),c=g("e2"),y=g("e3"),p=g("e4"),L=g("e6")||1,cap=g("e5")/L;if(!A||!y||!p){$("eo").innerHTML="<span class=\"mute\">Enter area, yield and price to see the arithmetic.</span>";return}
+const f=v=>"₹"+Math.round(v).toLocaleString("en-IN"),cost=c*A+cap,rev=y*A*p;
+$("eo").innerHTML=`<ul><li>Revenue: ${f(rev)}</li><li>Total cost including yearly share of capital: ${f(cost)}</li><li><b>Net return: ${f(rev-cost)}</b></li><li>Break-even price: ₹${(cost/(y*A)).toFixed(1)} per unit; break-even yield: ${(cost/(p*A)).toFixed(1)} per acre</li><li>If price or yield falls 20%: ${f(rev*0.8-cost)}. If both fall 20%: ${f(rev*0.64-cost)}.</li></ul><p class="mute">Compare these downside figures across options, not just the best case. Check subsidies, insurance and procurement with official sources.</p>`}
+function rules(){const HD=["Crop","Season","System","Family","N-fixing","Water need (1 low-3 high)","Salt tolerance (1 low-3 high)","Investment (1-3)","Verified source"];const SO={K:0,R:1,Z:2,A:3},fk=f=>f==="Cereal"?"0":f==="Legume"?"1":"2"+f,CS=[...C].sort((a,b)=>(SO[a.s]??4)-(SO[b.s]??4)||fk(a.f).localeCompare(fk(b.f))); // grouped by season, then family: cereals, legumes, others A-Z (user's request, 13 Nov 2026)
+const R=CS.map(c=>[c.n,SN[c.s]||"Any season",SYSN[c.sys],c.f,c.nf?"yes":"no",c.w,c.salt,c.inv,""]); // full season and system names (tester feedback, 13 Nov 2026)
+// Rows coloured by season (user's request, 13 Nov 2026): Kharif blue, Rabi purple, Zaid orange, any season grey.
+$("rt").innerHTML="<table><tr>"+HD.map(h=>"<th>"+h+"</th>").join("")+"</tr>"+R.map((r,i)=>`<tr class="s${CS[i].s}">`+r.map((x,j)=>"<td>"+(j===1?`<span class="sp">${x}</span>`:x)+"</td>").join("")+"</tr>").join("")+"</table>";
+$("rc").onclick=()=>{const T=x=>LANG==="hi"?(H[x]||x):x;navigator.clipboard.writeText([HD,...R].map(r=>r.map(x=>'"'+T(String(x))+'"').join(",")).join("\n")).then(()=>{$("rc").textContent="Copied"}).catch(()=>{})}}
+const lab=s=>s>=3?"Strong":s>=1?"Reasonable":"Weak";
+const LBL={Strong:"Good fit",Reasonable:"Possible",Weak:"Poor fit"};
+// ---- The three plans (Field Shift brief: compare at least three rotations, including the current one) ----
+// Each plan is a yearly rotation: monsoon (kharif) crop, then winter (rabi) crop. Both are scored with the same
+// starter crop rules as the rest of the app; the kharif crop's "previous crop" is the plan's own rabi crop.
+let FARM=LSG("fsFarm");
+const NEG=/^(Same crop family|High water demand|Moderate water demand|Sandy soil holds|Your EC reading|Rainfall swings widely between years, adding|High investment|High up-front|Larger financial|More labour|Perishable|A thirsty crop in a dry year|Arid western zone|You see a white salt crust)/;
+const WT={rain:[0,2,-1,-4],lim:[0,1,1,-2],irr:[0,0,0,0]};
+const PT={usual:"What you grow now",water:"Crops which save water",soil:"Crops which build soil"};
+function pair(k,r,st){const a=score(k,r?r.n:"Fallow / none",st),b=r?score(r,k.n,st):{s:0,why:[]},it=[...a.why.map(w=>[k.n,w]),...b.why.map(w=>[r.n,w])]; // each reason keeps the crop it is about
+ return{k,r,s:a.s+b.s,good:it.filter(x=>!NEG.test(x[1])),bad:it.filter(x=>NEG.test(x[1]))}}
+const wsum=p=>p.k.w+(p.r?p.r.w:0),pkey=p=>p.k.n+"|"+(p.r?p.r.n:"-");
+function threePlans(st){if(!FARM)return null;const k0=C.find(c=>c.n===FARM.k),r0=C.find(c=>c.n===FARM.r)||null;if(!k0)return null;
+ const K=C.filter(c=>c.s==="K"&&c.sys==="open"),R=C.filter(c=>c.s==="R"&&c.sys==="open"),all=[];K.forEach(k=>R.forEach(r=>all.push(pair(k,r,st))));
+ const usual=pair(k0,r0,st),used=new Set([pkey(usual)]),S0=wsum(usual);
+ const pick=(f,tb)=>{const c=all.filter(p=>f(p)&&!used.has(pkey(p))).sort((a,b)=>b.s-a.s||tb(a,b))[0];if(c)used.add(pkey(c));return c||null};
+ const water=pick(p=>wsum(p)<S0||(p.k.w===1&&p.r.w===1),(a,b)=>wsum(a)-wsum(b));
+ // Build soil: a legume in the rotation (different crop families). Among plans rated at least "Possible", prefer one
+ // that keeps a crop the farmer already grows, so the change is smaller.
+ // In a dry area (NASA dry-area rule, approved 12 Nov 2026), skip plans whose winter crop the rule warns about, if others exist.
+ const own=p=>(p.k.n===FARM.k||(p.r&&p.r.n===FARM.r))?1:0,dryWarn=p=>p.bad.some(x=>/^Arid western zone/.test(x[1]));
+ const sc0=all.filter(p=>(p.k.nf||p.r.nf)&&p.k.f!==p.r.f&&!used.has(pkey(p))),noDry=sc0.filter(p=>!dryWarn(p)),sc=noDry.length?noDry:sc0,ok1=sc.filter(p=>p.s/2>=1);
+ // After keeping the farmer's own crop, prefer crops different from the "Save water" plan, so the two plans are real alternatives
+ // (decided 12 Nov 2026). Only plans rated at least "Possible" are in this pool when any exist.
+ const pool=ok1.length?ok1:sc,dif=p=>water?(p.k.n!==water.k.n)+((p.r&&p.r.n)!==(water.r&&water.r.n)):0,base=(a,b)=>own(b)-own(a)||b.s-a.s||(b.k.nf+b.r.nf)-(a.k.nf+a.r.nf);
+ const soil=[...pool].sort((a,b)=>own(b)-own(a)||dif(b)-dif(a)||b.s-a.s||(b.k.nf+b.r.nf)-(a.k.nf+a.r.nf))[0]||null,plain=[...pool].sort(base)[0];
+ if(soil){soil.skippedDry=noDry.length>0&&noDry.length<sc0.length;soil.madeDifferent=!!plain&&pkey(plain)!==pkey(soil)}
+ return[["usual",usual],["water",water],["soil",soil]].filter(x=>x[1])}
+function chips(p,water){const ws=[p.k,p.r].filter(Boolean),mx=Math.max(...ws.map(c=>c.w)),mt=Math.min(...ws.map(c=>WT[water][c.w])),nf=ws.some(c=>c.nf),same=p.r&&p.k.f===p.r.f;
+ return `<div class="chips"><span class="chip ${mt<=-2?"cr":mt<0?"ca":"cg"}">Water need: ${["","low","medium","high"][mx]}</span><span class="chip ${nf?"cg":same?"cr":"ca"}">${nf?"Soil: adds nitrogen":same?"Soil: same family twice":"Soil: no change"}</span></div>`}
+// What the NASA data says for a district: usual rain, this year so far, bare and green months, the latest monsoon.
+function nasaFacts(dn){const src=climFor(dn),d=(D&&D.districts&&D.districts[dn])||{};if(!src)return null;const c=src.c,ys=Object.keys(c).filter(y=>c[y].rain_mm!=null),fy=ys.filter(y=>full(c[y])),out={own:src.own};
+ if(fy.length>=3){const r=fy.map(y=>c[y].rain_mm),m=r.reduce((a,b)=>a+b)/r.length,sd=Math.sqrt(r.reduce((a,b)=>a+(b-m)**2,0)/r.length);out.avg=Math.round(m);out.cv=Math.round(sd/m*100);out.span=fy[0]+"–"+fy[fy.length-1]}
+ const py=ys.find(y=>!full(c[y]));if(py){const k=c[py];out.cur={y:py,rain:Math.round(k.rain_mm),last:k.last_day};
+  // A fair comparison: this year's fully covered months against the same months of complete years.
+  const lm=+k.last_day.slice(5,7)-1,end=new Date(+py,lm+1,0).getDate()===+k.last_day.slice(8)?lm:lm-1,fm=fy.filter(y=>Array.isArray(c[y].rain_month_mm));out.end=end;
+  if(end>=0&&Array.isArray(k.rain_month_mm)&&fm.length>=3){const sum=a=>(a||[]).slice(0,end+1).reduce((s,v)=>s+(v||0),0),avgOf=f=>fm.reduce((s,y)=>s+f(c[y]),0)/fm.length;
+   out.mr=end?MON[0]+"–"+MON[end]:MON[0];out.rainNow=Math.round(sum(k.rain_month_mm));out.rainUsual=Math.round(avgOf(x=>sum(x.rain_month_mm)));
+   if(Array.isArray(k.days_40c_month)){out.hotNow=sum(k.days_40c_month);out.hotUsual=Math.round(avgOf(x=>sum(x.days_40c_month)))}}}
+ const rm=fy.filter(y=>Array.isArray(c[y].rain_month_mm));if(rm.length>=3)out.rainMon=Array.from({length:12},(_,i)=>rm.reduce((s,y)=>s+(c[y].rain_month_mm[i]||0),0)/rm.length);
+ // Usual soil moisture by month, from complete years only: from 1 Oct 2026 NASA POWER's newest values come from a
+ // different model (GEOS-IT instead of MERRA-2) with a different soil baseline, so this year is not compared.
+ const sw=fy.filter(y=>Array.isArray(c[y].soil_wet_month));if(sw.length>=3){const m=Array.from({length:12},(_,i)=>{const a=sw.map(y=>c[y].soil_wet_month[i]).filter(v=>v!=null);return a.length?a.reduce((s,v)=>s+v,0)/a.length:null});out.soil=m;
+  let lo=-1,hi=-1;m.forEach((v,i)=>{if(v==null)return;if(lo<0||v<m[lo])lo=i;if(hi<0||v>m[hi])hi=i});if(lo>=0){out.soilDry=MON[lo];out.soilWet=MON[hi]}}
+ const by={};(d.ndvi||[]).forEach(o=>{if(o.ndvi!=null&&o.valid_pct>=50)(by[o.date]=by[o.date]||[]).push(o.ndvi)}); // each date counted once
+ const dv=Object.keys(by).map(k=>[k,by[k].reduce((a,b)=>a+b)/by[k].length]),mon=Array.from({length:12},()=>[]);dv.forEach(([k,v])=>mon[+k.slice(5,7)-1].push(v));
+ const mm=mon.map(a=>a.length>=3?a.reduce((x,y)=>x+y)/a.length:null);out.mon=mm;
+ let bi=-1,bv=9;for(let i=0;i<12;i++){const w=[0,1,2].map(j=>mm[(i+j)%12]);if(w.every(x=>x!=null)){const s=(w[0]+w[1]+w[2])/3;if(s<bv){bv=s;bi=i}}}if(bi>=0)out.bare=MON[bi]+"–"+MON[(bi+2)%12];
+ let gi=-1;mm.forEach((x,i)=>{if(x!=null&&(gi<0||x>mm[gi]))gi=i});if(gi>=0)out.green=MON[gi];
+ const yrs=[...new Set(dv.map(([k])=>k.slice(0,4)))].sort(),cy=yrs[yrs.length-1],so=y=>{const a=dv.filter(([k])=>k.startsWith(y)&&/-(09|10)-/.test(k)).map(x=>x[1]);return a.length>=3?a.reduce((x,z)=>x+z)/a.length:null};
+ const cur=so(cy),prv=yrs.slice(0,-1).map(so).filter(x=>x!=null);if(cur!=null&&prv.length&&dv.some(([k])=>k.startsWith(cy+"-10")))out.after=Math.round((cur/(prv.reduce((a,b)=>a+b)/prv.length)-1)*100);
+ return out}
+const rainNowLine=N=>N.rainNow!=null&&N.rainUsual>0?`This year, ${N.mr}: ${N.rainNow} mm of rain, against ${N.rainUsual} mm in a usual year (${Math.round(N.rainNow/N.rainUsual*100)}%).`:N.cur?`This year so far: ${N.cur.rain} mm (to ${fd(N.cur.last)}).`:null;
+function nasaBox(dn){const N=nasaFacts(dn);if(!N)return `<p class="mute">No NASA data yet for ${dn}. Connect to the internet and tap "Check for latest district data".</p>`;const L=[];
+ if(N.avg!=null)L.push(`Usual rain: ${N.avg} mm a year (${N.span}).`);
+ const rn=rainNowLine(N);if(rn)L.push(rn);
+ if(N.cv!=null)L.push(`Rain changes about ${N.cv}% from one year to the next.`);
+ if(N.hotNow!=null)L.push(`Days of 40 °C or more, ${N.mr}: ${N.hotNow} this year, ${N.hotUsual} in a usual year.`);
+ if(N.soilDry)L.push(`Soil moisture is usually lowest in ${N.soilDry} and highest in ${N.soilWet}.`);
+ if(N.bare&&N.green)L.push(`Fields are barest in ${N.bare} and greenest in ${N.green}.`);
+ if(N.after!=null)L.push(N.after<=-10?`After this year's monsoon, fields were ${-N.after}% less green than in earlier years.`:N.after>=10?`After this year's monsoon, fields were ${N.after}% greener than in earlier years.`:"After this year's monsoon, fields were about as green as in earlier years.");
+ return `<p style="font-weight:800;margin:0 0 4px">${N.own?"🛰️ What NASA sees near your field":`🛰️ What NASA sees near ${dn}`}</p><ul class="sm">${L.map(x=>`<li>${x}</li>`).join("")}</ul><p class="sm mute" style="margin:6px 0 0">${N.own?`Rain, heat and soil: your location, rounded to about 10 km. Greenness: farmland near ${dn}.`:`Measured at a farmland point near ${dn}.`}</p>`}
+// The farmer's one-page report: field, what NASA sees, the three plans (best marked), things to watch, before changing crops.
+function drawReport(st,acts){const box=$("report");if(!box)return;const P=window.PLANS;if(!P||!FARM){box.innerHTML='<p class="mute">Answer the questions on the home page to see your plans.</p>';return}
+ const N=nasaFacts($("dist").value)||{},li=x=>Array.isArray(x)?`<b style="margin-right:4px">${x[0]}</b> ${x[1]}`:x,ul=a=>`<ul class="sm">${[...new Set(a.map(li))].map(x=>`<li>${x}</li>`).join("")}</ul>`;
+ const best=P.reduce((b,x)=>x[1].s>b[1].s?x:b,P[0]),L=[],B=bestNext(st),sl=soilLine(FARM);
+ if(N.avg!=null)L.push(`Usual rain: ${N.avg} mm a year (${N.span}).`);const rn=rainNowLine(N);if(rn)L.push(rn);
+ if(N.hotNow!=null)L.push(`Days of 40 °C or more, ${N.mr}: ${N.hotNow} this year, ${N.hotUsual} in a usual year.`);
+ if(N.bare&&N.green)L.push(`Fields are barest in ${N.bare} and greenest in ${N.green}.`);
+ const watch=[...best[1].bad,...P[0][1].bad].slice(0,3),gaps=st.oc!=null||st.ph!=null||st.ec!=null?[]:["Your soil: no soil test entered yet."];
+ box.innerHTML=`<p style="font-weight:800;font-size:19px;margin:0">📄 My farm report</p><p class="sm mute" style="margin:0">Made on ${fd(iso(new Date()))}</p>`+
+ `<h3>Your field</h3><p style="margin:0">${FARM.dist} · ${FARM.k} → ${FARM.r} · ${WL[FARM.water]}</p>`+(sl?`<p style="margin:0">${sl}</p>`:"")+
+ (B?`<h3>Best crops for next season</h3><p class="sm" style="margin:0">${seasonName(B.s)}</p>${nextList(B)}`:"")+(L.length?`<h3>What NASA sees</h3>${ul(L)}`:"")+
+ `<h3>Your three plans</h3>`+P.map(([t,p])=>{const l=lab(Math.round(p.s/2));return `<div${p===best[1]?' class="best"':""}><b>${PT[t]}</b><br><span>${p.k.n} → ${p.r?p.r.n:"Fallow / none"}</span> <span class="tag ${l}">${LBL[l]}</span></div>`}).join("")+
+ `<p class="sm" style="margin:6px 0 0">Best fit for now: ${PT[best[0]]}</p>`+(watch.length?`<h3>Things to watch</h3>${ul(watch)}`:"")+`<h3>Good practices</h3>${ul(acts.slice(0,3))}`+
+ `<h3>Before you change crops</h3>${ul(["Ask your KVK before changing crops.",...gaps,"These crop rules have not yet been checked by agriculture experts."])}<p class="sm mute" style="margin-top:10px">Rain, heat and soil: NASA POWER computer-model estimates. Greenness: NASA satellites.</p><p class="sm mute" style="margin:2px 0 0">${YSRC}</p>`}
+// Best crops for the coming season (user's request, 12 Nov 2026): each open-field crop of that season is rated with
+// score() for this field (water, soil answers, NASA rules) after the crop grown in the season before. The top 3 are
+// shown first on the plans page and in the report; ties go to the crop that needs less water.
+function nextSeason(){const m=new Date().getMonth()+1;return (m>=3&&m<=5)||m===12||m<=2?"K":"R"}
+function bestNext(st){if(!FARM)return null;const s=nextSeason(),prev=s==="K"?FARM.r:FARM.k;
+ return{s,prev,top:C.filter(c=>c.s===s&&c.sys==="open").map(c=>Object.assign({c},score(c,prev,st))).sort((a,b)=>b.s-a.s||a.c.w-b.c.w).slice(0,3)}}
+// Usual yields, quintals per hectare: [district average, poorest year, best year]. Source: Government of India, DES
+// Area, Production & Yield (data.desagri.gov.in/website/crops-apy-report-web), read 12 Nov 2026, 2018-19 to 2022-23.
+// Average = total production / total area over the years. Guar is listed there under "Whole Year". A crop is included
+// only where the district grew at least 1,000 ha of it on average, with at least 3 years of data (so Barmer and Jodhpur
+// barley, Sikar moth bean and sesame are left out). Cotton is left out: its unit there is unclear (probably bales).
+const YLD={"Barmer":{"Bajra (pearl millet)":[5.8,1.4,12.2],"Castor":[12,10.4,13],"Gram (chickpea)":[9.2,5.6,13.1],"Groundnut":[19.2,13.4,22.4],"Sorghum (jowar)":[3.8,0.2,8.3],"Mung bean":[2.8,0.5,5],"Moth bean":[4,0.4,8.6],"Mustard":[11.1,10.2,11.6],"Sesame":[2.6,0.4,4.6],"Wheat":[16.9,15.3,18],"Guar":[3.2,0.7,5.1]},
+ "Jodhpur":{"Bajra (pearl millet)":[8,6,10],"Castor":[8.3,5,10],"Gram (chickpea)":[11.2,10.4,11.9],"Groundnut":[23.2,19.2,26.6],"Sorghum (jowar)":[6.9,5.7,9.2],"Mung bean":[5.8,3.6,7.3],"Moth bean":[4.5,3.1,5.8],"Mustard":[12.9,11.5,14.3],"Sesame":[3.9,2.8,4.7],"Wheat":[24.5,22.7,27.1],"Guar":[6.1,3.8,9.1]},
+ "Sikar":{"Bajra (pearl millet)":[12,9.2,13.8],"Barley":[34.2,28.3,39.5],"Gram (chickpea)":[12.1,10,13.1],"Groundnut":[23.4,22.5,24.1],"Mung bean":[5.9,4.2,8.3],"Mustard":[10.8,5.9,14.2],"Wheat":[35.3,33.5,38.6],"Guar":[8.3,7.1,9.1]}};
+const YSRC="Yields: Government of India crop statistics (DES), average of all farms in the district, 2018-19 to 2022-23. Not a promise for your field.";
+function yieldLine(n){const d=FARM&&FARM.dist,y=(YLD[d]||{})[n];return `<br><span class="sm">🌾 <span>${y?`Usual yield in ${d}: ${y[0]} quintals per hectare (${y[1]} in a poor year, ${y[2]} in a good year).`:`No official yield figure for this crop in ${d}.`}</span></span>`}
+function seasonName(s){return{K:"Monsoon season (kharif)",R:"Winter season (rabi)"}[s]}
+function nextList(B){return `<ol class="nx">${B.top.map(o=>{const l=lab(o.s),good=o.why.filter(w=>!NEG.test(w)).slice(-2).reverse(),bad=o.why.find(w=>NEG.test(w)); // the last reasons are the field-specific ones
+ return `<li><b>${o.c.n}</b> <span class="tag ${l}">${LBL[l]}</span>${good.map(g=>`<br><span class="sm">${g}</span>`).join("")}${yieldLine(o.c.n)}${bad?`<br><span class="sm">⚠️ <span>${bad}</span></span>`:""}</li>`}).join("")}</ol>`}
+function drawNext(st){const box=$("next");if(!box)return;const B=bestNext(st);box.hidden=!B;if(!B)return;
+ box.innerHTML=`<p style="font-weight:800;font-size:18px;margin:0">🌱 Best crops for next season</p><p class="sm" style="margin:2px 0 0"><span>${seasonName(B.s)}</span> · <span>${B.prev&&B.prev!=="Fallow / none"?`After ${B.prev}, for your water and soil.`:"For your water and soil."}</span></p>`+nextList(B)+
+ `<p class="sm mute" style="margin:4px 0 0"><span>Ranked by how well each crop fits your field.</span> <span>${YSRC}</span></p>`}
+function drawPlans(st){const box=$("plans");if(!box)return;$("nasa").innerHTML=nasaBox($("dist").value);drawNext(st);const P=threePlans(st);window.PLANS=P;
+ if(!P){box.innerHTML='<p class="mute">Answer the questions on the home page to see your plans.</p>';return}
+ const N=nasaFacts($("dist").value)||{},usual=P[0][1],mine=[usual.k.n,usual.r&&usual.r.n],soilTest=st.oc!=null||st.ph!=null||st.ec!=null;
+ const li=x=>Array.isArray(x)?`<b style="margin-right:4px">${x[0]}</b> ${x[1]}`:x,sec=(h,a)=>a.length?`<h4>${h}</h4><ul class="sm">${[...new Set(a.map(li))].map(x=>`<li>${x}</li>`).join("")}</ul>`:"";
+ let rh=false; // "Recommended crops" heading above the first plan that is not the farmer's own (13 Nov 2026, user's request)
+ box.innerHTML=P.map(([t,p])=>{const L=lab(Math.round(p.s/2)),crops=[p.k,p.r].filter(Boolean),fresh=crops.filter(c=>!mine.includes(c.n));
+  const why=t==="usual"?["This is what you grow now, kept for comparison."]:t==="water"?[wsum(p)<wsum(usual)?"Picked because these crops need less water than what you grow now.":"Picked because these crops need little water."]:["Picked because it includes a legume, which adds nitrogen to the soil.",...crops.filter(c=>mine.includes(c.n)).map(c=>`It keeps a crop you already grow: ${c.n}.`),...(p.skippedDry?["In this arid zone, winter crops that need medium water were left out."]:[]),...(p.madeDifferent?["It uses different crops from the water-saving plan, so you have two real choices."]:[])];
+  const ev=[...p.good];if(N.avg!=null)ev.push(`Usual rain here is ${N.avg} mm a year and changes about ${N.cv}% between years (NASA).`);const rn=rainNowLine(N);if(rn&&t!=="soil")ev.push(rn);if(N.hotNow!=null&&t!=="soil")ev.push(`Days of 40 °C or more, ${N.mr}: ${N.hotNow} this year, ${N.hotUsual} in a usual year.`);
+  const ben=t==="usual"?["You already know these crops, their seed and their market."]:t==="water"?[wsum(p)<wsum(usual)?"Needs less water than what you grow now.":"Needs little water.","Less loss if the rain is poor."]:["Adds nitrogen that the next crop can use.","Changing crop families breaks pest and disease build-up."];
+  const gaps=[];if(!soilTest)gaps.push("Your soil: no soil test entered yet.");fresh.forEach(c=>{gaps.push(`Which variety of ${c.n} suits your area, and where to get seed.`);gaps.push(`Price and demand for ${c.n} at your mandi.`)});gaps.push("NASA data is for a 10 km farmland area near you, not your own field.");
+  const risk=[...p.bad];if(t!=="usual")risk.push("Ask your KVK before changing crops."); // "rules not yet checked by experts" is said once under the plans
+  return (t!=="usual"&&!rh&&(rh=true)?'<h3 class="rech">Recommended crops</h3>':"")+`<details class="plan"><summary><div class="ptitle"><span>${PT[t]}</span><span class="tag ${L}">${LBL[L]}</span></div><div class="pcrops">${p.k.n} → ${p.r?p.r.n:"Fallow / none"}</div>${chips(p,st.water)}<div class="pmore">Tap for why, evidence, benefits, gaps and risks ▾</div></summary><div class="pdet">${sec("Why this plan",why)}${sec("Evidence",ev)}${sec("Benefits",ben)}${sec("What we don't know",gaps)}${sec("Check with your KVK",risk)}</div></details>`}).join("")}
+// Crop rules page (13 Nov 2026, tester feedback: rule text was spread over pages and hard to read). The NASA rules are
+// shown here once, as pictures for the farmer's district; other pages link here ("How the ratings work").
+function drawRules(st){const box=$("nrules");if(!box)return;const dn=$("dist").value,N=nasaFacts(dn)||{},c=cv(),ar=ARID_ZONE.includes(dn);
+ const bar=(l,v,mx,col,t,mk)=>`<div class="row sm" style="margin:6px 0"><span style="width:84px;flex:none">${l}</span><div class="rk"><i style="width:${Math.max(v/mx*100,1)}%;background:${col}"></i>${mk!=null?`<b style="left:${mk/mx*100}%"></b>`:""}</div><span style="flex:none;min-width:56px;text-align:right">${t}</span></div>`;
+ let h=`<p style="font-weight:800;margin:0">🛰️ Rules that use NASA data</p><p class="sm mute" style="margin:0">${N.own?`Rain, heat and soil: your location, rounded to about 10 km. Greenness: farmland near ${dn}.`:`Measured at a farmland point near ${dn}.`}</p><div class="rule"><p>🌧️ Dry year</p>`;
+ if(N.rainNow!=null&&N.rainUsual>0){const p=Math.round(N.rainNow/N.rainUsual*100),mx=Math.max(N.rainNow,N.rainUsual),line=N.rainUsual*DRY_YEAR_PCT/100;
+  h+=`<p class="sm" style="margin:0">Rain in ${N.mr}, this year and in a usual year</p>`+bar("Usual year",N.rainUsual,mx,"var(--rain2)",`${N.rainUsual} mm`,line)+bar("This year",N.rainNow,mx,p<DRY_YEAR_PCT?"var(--bad)":"var(--rain)",`${N.rainNow} mm`,line)+
+  `<p class="sm mute" style="margin:0 0 6px">Dashed line: 80% of a usual year</p><p class="sm" style="margin:0">${p<DRY_YEAR_PCT?`This year has ${p}% of usual rain, below the 80% line. So crops that need little water rate higher, and thirsty crops rate lower.`:`This year has ${p}% of usual rain, at or above the 80% line, so this rule does not change ratings now.`}</p>`}
+ else h+=`<p class="sm mute" style="margin:0">No NASA rain figures for this year yet.</p>`;
+ h+=`</div><div class="rule"><p>🏜️ Arid zone</p><div class="zone" style="grid-template-columns:1fr">${[dn].map(d=>`<div class="${d===dn?"on":""}">${ARID_ZONE.includes(d)?"🏜️":"🌾"}<br><span>${d}</span><br><small class="mute">${ARID_ZONE.includes(d)?"Arid zone":"Not arid zone"}</small></div>`).join("")}</div><p class="sm" style="margin:0">${!ar?`${dn} is not in the arid zone, so this rule does not change ratings here.`:st.water==="rain"?"Your field is in the arid zone and gets rain only, so winter crops that need medium water rate lower, and the soil-building plan leaves them out.":"Your field is in the arid zone but has irrigation, so this rule does not change your ratings."}</p></div>`;
+ if(c){const mx=Math.max(...c.r),pc=Math.round(c.cv*100);h+=`<div class="rule"><p>📊 Rain swing from year to year</p>`+c.ys.map((y,i)=>bar(y,c.r[i],mx,"var(--rain)",`${Math.round(c.r[i])} mm`,c.m)).join("")+
+  `<p class="sm mute" style="margin:0 0 6px">Dashed line: average, ${Math.round(c.m)} mm</p><p class="sm" style="margin:0">${c.cv>=0.3?`Rain changes about ${pc}% from year to year. That is 30% or more, so drought-hardy crops rate higher and thirsty crops lower.`:`Rain changes about ${pc}% from year to year. That is below 30%, so this rule does not change ratings here.`}</p></div>`}
+ h+=`<div class="rule"><p>⭐ How a rating is made</p><p class="sm" style="margin:0 0 6px">Each rule adds or takes away points for a crop:</p><div class="chips"><span class="tag Strong">3 points or more: Good fit</span><span class="tag Reasonable">1 to 2 points: Possible</span><span class="tag Weak">0 or less: Poor fit</span></div><p class="sm" style="margin:8px 0 0">Other rules use your answers: water, soil, salt crust and the crop grown before. A legume adds nitrogen; the same crop family twice in a row rates lower.</p></div>`;
+ box.innerHTML=h}
+// Farm report as a PDF file (13 Nov 2026, tester feedback: "Share report" only sent plain text). The report is drawn as a
+// picture (so Hindi letters come out right), cut into A4 pages between lines and packed into a PDF on the phone itself.
+function pdfOf(pg){const E=new TextEncoder(),parts=[],off=[];let n=0;const add=x=>{const b=typeof x==="string"?E.encode(x):x;parts.push(b);n+=b.length};
+ add("%PDF-1.4\n%âãÏÓ\n");off[1]=n;add("1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n");off[2]=n;add(`2 0 obj<</Type/Pages/Kids[${pg.map((_,k)=>(3+3*k)+" 0 R").join(" ")}]/Count ${pg.length}>>endobj\n`);
+ pg.forEach((j,k)=>{const p=3+3*k,cs="q 595.28 0 0 841.89 0 0 cm /I Do Q";
+  off[p]=n;add(`${p} 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 595.28 841.89]/Resources<</XObject<</I ${p+2} 0 R>>>>/Contents ${p+1} 0 R>>endobj\n`);
+  off[p+1]=n;add(`${p+1} 0 obj<</Length ${cs.length}>>stream\n${cs}\nendstream\nendobj\n`);
+  off[p+2]=n;add(`${p+2} 0 obj<</Type/XObject/Subtype/Image/Width ${j.w}/Height ${j.h}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${j.d.length}>>stream\n`);add(j.d);add("\nendstream\nendobj\n")});
+ const x=n,t=3+3*pg.length;add(`xref\n0 ${t}\n0000000000 65535 f \n`+off.slice(1,t).map(o=>String(o).padStart(10,"0")+" 00000 n \n").join("")+`trailer<</Size ${t}/Root 1 0 R>>\nstartxref\n${x}\n%%EOF\n`);
+ return new Blob(parts,{type:"application/pdf"})}
+async function reportPdf(){const W=700,S=2,M=34,PH=Math.round(W*1.4143),room=PH-2*M,wrap=document.createElement("div"),rep=$("report").cloneNode(true);
+ wrap.setAttribute("style","position:absolute;left:-10000px;top:0;width:"+W+"px;padding:0 30px;box-sizing:border-box;background:#fff;color:#17261f;font:16px/1.55 system-ui,sans-serif;--bg:#f1f4f0;--card:#fff;--ink:#17261f;--mute:#5d6778;--line:#d6ddd5;--ok:#0f7a4d;--mid:#a16207;--bad:#b42318;--acc:#1b6b4a;--sel:#e3f1ea");
+ rep.removeAttribute("id");rep.style.cssText="border:0;box-shadow:none;padding:0;margin:0;background:#fff";wrap.appendChild(rep);document.body.appendChild(wrap);
+ const r0=wrap.getBoundingClientRect(),Ht=Math.ceil(r0.height)+8,cuts=[...rep.querySelectorAll("p,li,h3,div")].map(e=>Math.ceil(e.getBoundingClientRect().bottom-r0.top)+2);
+ wrap.style.position="static";wrap.style.left="0";const sty=document.createElement("style");sty.textContent=[...document.querySelectorAll("style")].map(s=>s.textContent).join("\n");wrap.prepend(sty);
+ const xml=new XMLSerializer().serializeToString(wrap);wrap.remove();
+ const img=new Image(),svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${Ht}"><foreignObject x="0" y="0" width="${W}" height="${Ht}">${xml}</foreignObject></svg>`;
+ await new Promise((ok,no)=>{img.onload=ok;img.onerror=no;img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg)});
+ const can=document.createElement("canvas");can.width=W*S;can.height=Ht*S;const g=can.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,can.width,can.height);g.drawImage(img,0,0,can.width,can.height);
+ const pages=[];for(let y=0;y<Ht-10;){let e=y+room;if(e>=Ht)e=Ht;else{const c=cuts.filter(v=>v>y+room/2&&v<=e).sort((a,b)=>a-b).pop();if(c)e=c}pages.push([y,e]);y=e}
+ const out=[];for(const [a,b] of pages){const pc=document.createElement("canvas");pc.width=W*S;pc.height=PH*S;const q=pc.getContext("2d");q.fillStyle="#fff";q.fillRect(0,0,pc.width,pc.height);q.drawImage(can,0,a*S,W*S,(b-a)*S,0,M*S,W*S,(b-a)*S);
+  const bl=await new Promise(r=>pc.toBlob(r,"image/jpeg",0.88));out.push({d:new Uint8Array(await bl.arrayBuffer()),w:pc.width,h:pc.height})}
+ return pdfOf(out)}
+function draw(){
+ const v=i=>$(i).value===""?null:+$(i).value,c=cv();
+ const NF=nasaFacts($("dist").value)||{}; // NASA facts that the dry-year and dry-area rules use
+ const st={water:$("water").value,tex:$("tex").value,oc:v("oc"),ph:v("ph"),ec:v("ec"),cv:c&&c.cv,rainPct:NF.rainNow!=null&&NF.rainUsual>0?Math.round(NF.rainNow/NF.rainUsual*100):null,usualRain:NF.avg!=null?NF.avg:null,arid:ARID_ZONE.includes($("dist").value),crust:!!(FARM&&FARM.salt==="y")};window.ST=st;
+ updMsg();
+ if($("q").value)$("q").dispatchEvent(new Event("input"));
+ F={inv:$("inv").value,cr:$("cr").value,mk:$("mk").value,lb:$("lb").value,rk:$("rk").value};const prev=$("prev").value,ss=$("season").value;
+ const rank=(se,pv)=>C.filter(x=>x.sys===$("sys").value&&(x.s===se||x.s==="A")).map(x=>({c:x,...score(x,pv,st)})).sort((a,b)=>b.s-a.s);
+ const RK=rank(ss,prev),GF=RK.filter(o=>lab(o.s)==="Strong"); // only Good fit crops are listed (13 Nov 2026, user's request)
+ $("opts").innerHTML=(RK.length?GF.length?"":"<p class=\"mute\">No crop is a good fit for this season with your answers. Type a crop name above to check it, and ask your KVK.</p>":"<p class=\"mute\">No catalogued crop for this system and season. Try another system or season.</p>")+GF.map((o,i)=>`<details class="opt ${lab(o.s)}"${i===0?" open":""}><summary><span class="oname">${o.c.n}</span><span class="tag ${lab(o.s)}">${LBL[lab(o.s)]}</span></summary><div class="odet"><p class="sm cnote">${o.c.t}</p><div class="sm mute">${SN[o.c.s]||"Any season"}, ${SYSN[o.c.sys]}, ${o.c.f}, water need ${["","low","medium","high"][o.c.w]}, salt tolerance ${["","low","moderate","high"][o.c.salt]}</div><p class="sm" style="margin:8px 0 0"><b>Why this rating</b></p><ul class="sm">${o.why.map(w=>`<li>${w}</li>`).join("")||"<li>No strong factor either way from the inputs given.</li>"}</ul></div></details>`).join("");
+ let se=ss,pv=prev,h="";window.PLAN=[];
+ for(let i=0;i<4;i++){const b=rank(se,pv)[0]||{c:{n:"Fallow / none"},s:0,why:["No catalogued crop for this system and season. Consider fodder, fallow with moisture conservation, or another system."]};h+=`<div class="step"><div class="sm mute">${SN[se]}, season ${i+1}</div><b>${b.c.n}</b><div class="sm"><span class="tag ${lab(b.s)}">${LBL[lab(b.s)]}</span></div><div class="sm mute">${b.why[0]||""}</div></div>`;PLAN.push([SN[se],i+1,b.c.n,lab(b.s)]);pv=b.c.n;se={K:"R",R:"Z",Z:"K"}[se]}
+ $("seq").innerHTML=h;drawPlans(st);
+ const f=[];
+ if(st.oc==null&&st.ph==null&&st.ec==null)f.push(["Enter soil test values above for a soil health reading. Without a test, this app does not guess your soil.","mid"]);
+ if(st.oc!=null)f.push([st.oc<0.5?"Organic carbon "+st.oc+"% is low. Rotations with legumes and returned crop residue are the usual direction; confirm with local advice.":st.oc<=0.75?"Organic carbon "+st.oc+"% is medium.":"Organic carbon "+st.oc+"% is high.",st.oc<0.5?"bad":"ok"]);
+ if(st.ph!=null)f.push([st.ph>8.5?"pH "+st.ph+" is strongly alkaline. Possible sodicity: get an expert diagnosis before choosing amendments.":st.ph<6.5?"pH "+st.ph+" is acidic.":"pH "+st.ph+" is in a workable range for most crops.",st.ph>8.5||st.ph<6.5?"bad":"ok"]);
+ if(st.ec!=null)f.push([st.ec>4?"EC "+st.ec+" dS/m indicates salinity. Salt-sensitive crops (sesame, gram, cumin) are penalised in the ranking.":"EC "+st.ec+" dS/m is not in the saline range.",st.ec>4?"bad":"ok"]);
+ if(st.tex==="s")f.push(["Sandy soil: low water retention and wind erosion risk. Residue cover and shelterbelts are common responses; check local guidance.","mid"]);
+ $("soil").innerHTML=f.map(x=>`<p class="warn" style="border-color:var(--${x[1]})">${x[0]}</p>`).join("");
+ const a=["Check the seasonal forecast and monsoon onset before sowing, and stagger sowing if the first rain is weak."];
+ if(st.water==="rain"||(st.cv!=null&&st.cv>=0.3))a.push("Prefer drought-hardy crops and short-duration varieties. Ask your KVK which varieties are recommended locally.");
+ if(st.tex==="s"||st.water!=="irr")a.push("Conserve soil moisture with residue cover or mulch, and consider rainwater harvesting for a protective irrigation.");
+ if(st.tex==="s")a.push("Reduce wind erosion with boundary tree rows or shelterbelts.");
+ if(st.ec!=null&&st.ec>4)a.push("Test your irrigation water as well as the soil, since salty water adds to the problem.");
+ a.push("Spread risk by mixing a legume into the rotation or intercropping, where local advice supports it.");
+ $("act").innerHTML="<ul>"+a.map(x=>`<li>${x}</li>`).join("")+"</ul><p class='sm mute' style='margin-top:8px'>General practices, not prescriptions. Doses and schedules should come from local agricultural advisories.</p>";drawReport(st,a);drawRules(st);
+ if(!c){$("clim").innerHTML='<p class="mute">No NASA data yet for '+$("dist").value+'. Connect to the internet and tap "Check for latest district data".</p>';return}
+ const src=climFor($("dist").value),dd={climate:src.c},yrs=Object.keys(dd.climate).filter(y=>dd.climate[y].rain_mm!=null),mx=Math.max(...yrs.map(y=>dd.climate[y].rain_mm)),live=src.own||yrs.some(y=>dd.climate[y].live);
+ $("clim").innerHTML=`<p><b>${$("dist").value}</b>: average rain ${c.m.toFixed(0)} mm a year (${c.ys[0]}–${c.ys[c.ys.length-1]}), change between years ${(c.cv*100).toFixed(0)}%.</p>`+
+  yrs.map(y=>{const k=dd.climate[y];return `<div class="row sm"><span style="width:44px;flex:none">${y}</span><div class="rb cR${full(k)?"":" part"}" style="width:${k.rain_mm/mx*55}%"></div><span>${k.rain_mm} mm</span>${full(k)?"":`<span class="mute">so far, to ${fd(k.last_day,false)}</span>`}</div>`}).join("")+
+  `<p class="sm mute" style="margin-top:8px">Source: NASA POWER computer-model estimates for one point in the district, not rain gauges.</p>`+(src.own?`<p class="sm mute">Rain, heat and soil: your location, rounded to about 10 km. Greenness: farmland near ${$("dist").value}.</p>`:"")+(live&&LIVE?`<p class="sm mute">This year's figures come straight from NASA, checked on ${fd(LIVE.fetched)}.</p>`:"")+weatherBlocks()+veg()}
+// Rain by month, hot days by year, and usual soil moisture by month (climate page).
+function weatherBlocks(){const dn=$("dist").value,N=nasaFacts(dn),s=climFor(dn);if(!N||!s)return"";const c=s.c,cur=N.cur&&c[N.cur.y],H3=t=>`<h3 style="font-size:17px;margin:16px 0 6px">${t}</h3>`;let h="";
+ // Each chart has its own colour (user's request, 13 Nov 2026): rain blue, hot days orange, soil moisture brown, greenness green.
+ const row=(l,w,t,x,k)=>`<div class="row sm"><span style="width:64px;flex:none">${l}</span><div class="rb ${k}" style="width:${Math.max(w,1)}%"></div><span>${t}</span>${x?`<span class="mute">${x}</span>`:""}</div>`;
+ if(N.rainMon){const tv=i=>cur&&cur.rain_month_mm&&i<=N.end&&cur.rain_month_mm[i]!=null?cur.rain_month_mm[i]:null,mx=Math.max(...N.rainMon,...N.rainMon.map((_,i)=>tv(i)||0),1),two=(w,t,k)=>`<div class="row"><div class="rb ${k}" style="width:${Math.max(w,1)}%"></div><span>${t}</span></div>`;
+  h+=H3("Rain by month: usual year and this year")+`<p class="sm mute" style="margin:0 0 4px"><span class="sw cR2"></span><span>Usual year</span><span class="sw cR"></span><span>This year</span></p>`+N.rainMon.map((v,i)=>{const t=tv(i);return `<div class="row sm" style="margin:4px 0"><span style="width:64px;flex:none">${MON[i]}</span><div style="flex:1;min-width:0">${two(v/mx*70,`${Math.round(v)} mm`,"cR2")}${t!=null?two(t/mx*70,`${Math.round(t)} mm`,"cR"):""}</div></div>`}).join("")}
+ const ys=Object.keys(c).filter(y=>c[y].days_40c!=null);if(ys.length){const mx=Math.max(...ys.map(y=>c[y].days_40c),1);h+=H3("Days of 40 °C or more")+ys.map(y=>row(y,c[y].days_40c/mx*45,`${c[y].days_40c} days`,full(c[y])?"":`so far, to ${fd(c[y].last_day,false)}`,"cH"+(full(c[y])?"":" part"))).join("")}
+ if(N.soil){const mx=Math.max(...N.soil.filter(v=>v!=null));h+=H3("Soil moisture by month (usual year)")+N.soil.map((v,i)=>v==null?"":row(MON[i],v/mx*45,v.toFixed(2),"","cS")).join("")+"<p class=\"sm mute\">0 = dry, 1 = soaked. A NASA computer-model estimate of the soil where roots grow, not a measurement. This year's newest values come from a different NASA model, so they are not compared here.</p>"}
+ return h}
+// The message under the "Check for latest district data" button: what was checked and how recent the data is.
+function updMsg(){const e=$("upd");if(!e)return;const d=D&&D.districts&&D.districts[$("dist").value];
+ if(UPD==="checking"){e.textContent="Checking NASA for new data…";return}
+ if(D&&/PLACEHOLDER/.test(D.generated||"")){e.textContent="";return}
+ if(!d||!d.climate){e.textContent="No NASA data yet. Connect to the internet and tap the button above.";return}
+ const ys=Object.keys(d.climate).filter(y=>d.climate[y].last_day),R=fd(ys.length?d.climate[ys[ys.length-1]].last_day:""),G=fd((d.ndvi||[]).reduce((a,x)=>x.date>a?x.date:a,""));
+ e.textContent=UPD==="live"&&LIVE?`Checked with NASA on ${fd(LIVE.fetched)}. Rain and heat: up to ${R}. Greenness from satellite: up to ${G}.`:UPD==="offline"?`No internet. Showing saved data. Rain and heat: up to ${R}. Greenness from satellite: up to ${G}.`:UPD==="nasafail"?`Could not reach NASA just now. Rain and heat: up to ${R}. Greenness from satellite: up to ${G}.`:`Rain and heat: up to ${R}. Greenness from satellite: up to ${G}.`}
+["dist","season","prev","water","tex","oc","ph","ec","sys","inv","cr","mk","lb","rk"].forEach(i=>$(i).addEventListener("input",draw));
+["e1","e2","e3","e4","e5","e6"].forEach(i=>$(i).addEventListener("input",eco));rules();eco();
+// "Fill example field" was removed on 13 Nov 2026 (user's decision): it replaced the farmer's answers with sample values.
+// The "Preview climate panel with placeholder rainfall" button was removed on 13 Nov 2026: its made-up rain replaced the
+// real NASA data in every rating, and real data now always loads (from data.json, the phone's saved copy, or NASA).
+$("q").addEventListener("input",()=>{const q=$("q").value.trim().toLowerCase();if(!q){$("qr").innerHTML="";return}
+ const hit=C.filter(c=>(c.n+" "+(H[c.n]||"")+" "+c.f+" "+c.t+" "+SYSN[c.sys]+" "+(SN[c.s]||"any season")+" polyhouse shade net").toLowerCase().includes(q)&&(q!=="polyhouse"&&q!=="shade net"&&q!=="shade"&&q!=="net"||c.sys==="prot")).slice(0,12);
+ $("qr").innerHTML=hit.length?"<p class=\"sm mute\" style=\"margin-top:8px\">Fit is for the field described below.</p>"+hit.map(c=>{const r=score(c,$("prev").value,window.ST||{water:"rain"});return `<div class="hit"><b>${c.n}</b> <span class="tag ${lab(r.s)}">${LBL[lab(r.s)]}</span><div class="sm mute">${SN[c.s]||"Any season"}, ${SYSN[c.sys]}, ${c.f}, water need ${["","low","medium","high"][c.w]}, salt tolerance ${["","low","moderate","high"][c.salt]}</div><div class="sm cnote">${c.t}</div></div>`}).join(""):"<p class=\"mute sm\" style=\"margin-top:8px\">No crop found. Try another name, season or farming system.</p>"});
+$("cp").onclick=()=>{const hi=LANG==="hi",T=s=>hi?(H[s]||s):s;navigator.clipboard.writeText(PLAN.map(([se,i,n,l])=>hi?`${T(se)}, मौसम ${i}: ${T(n)} (${T(LBL[l])})`:`${se}, season ${i}: ${n} (${LBL[l]})`).join("\n")).then(()=>{$("cp").textContent="Copied"}).catch(()=>{})};
+// Share the three plans (WhatsApp and other apps through the phone's share menu; copies the text if sharing is not available).
+$("share").onclick=()=>{const P=window.PLANS;if(!P||!FARM)return;const hi=LANG==="hi",T=s=>hi?(H[s]||s):s;
+ const txt=T("My crop plans")+" ("+T(FARM.dist)+")\n"+P.map(([t,p])=>`${T(PT[t])}: ${T(p.k.n)} → ${T(p.r?p.r.n:"Fallow / none")} (${T(LBL[lab(Math.round(p.s/2))])})`).join("\n")+"\n"+T("These plans are a starting point, not advice. Check them with your Krishi Vigyan Kendra (KVK) before changing crops.");
+ if(navigator.share)navigator.share({text:txt}).catch(()=>{});else navigator.clipboard.writeText(txt).then(()=>{$("share").textContent="Copied"}).catch(()=>{})};
+// "Load a data file" was removed on 13 Nov 2026 (user's decision): farmers never need it; data.json loads by itself and is
+// updated with the pipeline scripts.
+const H={"DesertCrop Navigator":"डेज़र्टक्रॉप नेविगेटर","Simple help for your crops, water, soil and farm income.":"आपकी फसल, पानी, मिट्टी और खेती की आमदनी के लिए आसान मदद।","Search a crop, season or farming system: bajra, ber, rabi, polyhouse":"फसल, मौसम या खेती का तरीका खोजें: बाजरा, बेर, रबी, पॉलीहाउस","Welcome, farmer!":"स्वागत है, किसान साथी!","You know your farm best. Answer a few questions and the app uses district data to help you plan.":"अपने खेत को आप सबसे अच्छी तरह जानते हैं। कुछ सवालों के जवाब दें, ऐप ज़िले के आंकड़ों से योजना बनाने में मदद करेगा।","🌱 Start with my farm":"🌱 मेरे खेत से शुरू करें","🛰️ Check my district":"🛰️ मेरा ज़िला देखें","💰 Work out my income":"💰 मेरी आमदनी का हिसाब","No account needed. Skip any question you do not know.":"खाता बनाने की ज़रूरत नहीं। जो सवाल न पता हो, उसे छोड़ दें।",
+"My field":"मेरा खेत","Crop plan":"फसल योजना","Soil":"मिट्टी","NASA climate":"नासा मौसम डेटा","Actions":"उपाय","Economics":"लागत और आमदनी","Crop rules":"फसल नियम","← Back":"← पीछे","Continue →":"आगे बढ़ें →","Finish":"समाप्त","NASA data not loaded":"नासा डेटा लोड नहीं हुआ","NASA data loaded":"नासा डेटा लोड हो गया","Placeholder rainfall (not NASA data)":"नमूना वर्षा (नासा डेटा नहीं)","Copied":"कॉपी हो गया",
+"Tell the app about your field: district, season, previous crop, water, soil and your own situation. Every other page uses these answers.":"अपने खेत के बारे में बताएं: ज़िला, मौसम, पिछली फसल, पानी, मिट्टी और आपकी स्थिति। बाकी सभी पेज इन्हीं जवाबों का उपयोग करते हैं।",
+"A four-season rotation and a ranked list of crops for the next season. Rotation matters because growing the same crop family back to back builds up pests and diseases, while legumes add nitrogen to the soil.":"अगले चार मौसमों का फसल चक्र और अगले मौसम की फसलों की क्रमवार सूची। एक ही कुल की फसल बार-बार लेने से कीट और रोग बढ़ते हैं, जबकि दलहनी फसलें मिट्टी में नाइट्रोजन जोड़ती हैं।",
+"Soil health readings from your soil test: organic carbon, pH and salinity (EC). Without a soil test the app does not guess.":"आपकी मिट्टी जांच से मिट्टी की सेहत: जैविक कार्बन, पीएच और लवणता (ईसी)। मिट्टी जांच के बिना ऐप अनुमान नहीं लगाता।",
+"Helps farmers in Jodhpur, Barmer and Sikar choose what to grow next, using NASA weather and satellite data.":"जोधपुर, बाड़मेर और सीकर के किसानों के लिए: नासा के मौसम और उपग्रह डेटा से तय करें कि अगली बार क्या बोएं।",
+"About DesertCrop Navigator":"डेज़र्टक्रॉप नेविगेटर के बारे में","👩‍🌾 Who it is for:":"👩‍🌾 किसके लिए:","farmers in Jodhpur, Barmer and Sikar districts of Rajasthan.":"राजस्थान के जोधपुर, बाड़मेर और सीकर ज़िलों के किसान।","🌱 What it does:":"🌱 यह क्या करता है:",
+"you answer 4 short questions about your field: place, usual crops, water and soil. The app then shows the best crops for next season and compares three crop plans: what you grow now, a plan that saves water, and a plan that builds soil.":"आप अपने खेत के बारे में 4 छोटे सवालों के जवाब देते हैं: जगह, आम फसलें, पानी और मिट्टी। फिर ऐप अगले मौसम की सबसे अच्छी फसलें दिखाता है और तीन फसल योजनाओं की तुलना करता है: जो आप अभी उगाते हैं, पानी बचाने वाली योजना, और मिट्टी सुधारने वाली योजना।",
+"🤝 How it helps:":"🤝 इससे क्या फ़ायदा:",
+"you see which crops suit your field this year and why, the usual yield in your district, and what to check with your KVK before changing crops. It works in Hindi and English, and keeps working without internet once it has opened.":"आप देखते हैं कि इस साल आपके खेत के लिए कौन सी फसलें ठीक हैं और क्यों, आपके ज़िले में आम पैदावार कितनी होती है, और फसल बदलने से पहले केवीके से क्या पूछें। यह हिंदी और अंग्रेज़ी में चलता है, और एक बार खुलने के बाद बिना इंटरनेट के भी चलता है।",
+"🛰️ How it uses NASA data:":"🛰️ नासा डेटा का उपयोग कैसे होता है:",
+"Rain, heat and soil moisture: NASA POWER, for your location (rounded to about 10 km) or a farmland point in your district. Checked each time you open the app with internet.":"बारिश, गर्मी और मिट्टी की नमी: नासा पावर से, आपकी जगह (लगभग 10 किमी तक) या आपके ज़िले में खेती की एक जगह के लिए। इंटरनेट हो तो हर बार ऐप खोलने पर जांच होती है।",
+"Field greenness: NASA's HLS satellite pictures (from Landsat and Sentinel-2) of farmland in your district, showing when fields are green or bare.":"खेतों की हरियाली: आपके ज़िले के खेतों की नासा की एचएलएस उपग्रह तस्वीरें (लैंडसैट और सेंटिनल-2 से), जिनसे पता चलता है कि खेत कब हरे हैं और कब खाली।",
+"These feed the crop ratings: for example, in a dry year, crops that need little water rate higher.":"इन्हीं से फसलों की रेटिंग बनती है: जैसे सूखे साल में कम पानी वाली फसलों की रेटिंग ऊपर जाती है।",
+"📋 How the ratings work":"📋 रेटिंग कैसे बनती है","🌧️ Dry year":"🌧️ सूखा साल","Rain in {1}, this year and in a usual year":"{1} में बारिश: इस साल और आम साल में","Usual year":"आम साल","This year":"इस साल","Dashed line: 80% of a usual year":"टूटी रेखा: आम साल का 80%",
+"This year has {1}% of usual rain, below the 80% line. So crops that need little water rate higher, and thirsty crops rate lower.":"इस साल आम साल की {1}% बारिश हुई है, जो 80% की रेखा से कम है। इसलिए कम पानी वाली फसलों की रेटिंग ऊपर और ज़्यादा पानी वाली फसलों की रेटिंग नीचे जाती है।",
+"This year has {1}% of usual rain, at or above the 80% line, so this rule does not change ratings now.":"इस साल आम साल की {1}% बारिश हुई है, जो 80% की रेखा से कम नहीं है, इसलिए यह नियम अभी रेटिंग नहीं बदलता।",
+"No NASA rain figures for this year yet.":"इस साल के नासा बारिश के आंकड़े अभी नहीं हैं।","🏜️ Arid zone":"🏜️ शुष्क क्षेत्र","Arid zone":"शुष्क क्षेत्र","Not arid zone":"शुष्क क्षेत्र नहीं",
+"Your field is in the arid zone and gets rain only, so winter crops that need medium water rate lower, and the soil-building plan leaves them out.":"आपका खेत शुष्क क्षेत्र में है और सिर्फ़ बारिश पर निर्भर है, इसलिए मध्यम पानी वाली रबी फसलों की रेटिंग नीचे जाती है, और मिट्टी सुधारने वाली योजना उन्हें छोड़ देती है।",
+"Your field is in the arid zone but has irrigation, so this rule does not change your ratings.":"आपका खेत शुष्क क्षेत्र में है, पर सिंचाई है, इसलिए यह नियम आपकी रेटिंग नहीं बदलता।",
+"{1} is not in the arid zone, so this rule does not change ratings here.":"{1} शुष्क क्षेत्र में नहीं है, इसलिए यह नियम यहां रेटिंग नहीं बदलता।",
+"📊 Rain swing from year to year":"📊 हर साल बारिश में बदलाव","Dashed line: average, {1} mm":"टूटी रेखा: औसत, {1} मिमी",
+"Rain changes about {1}% from year to year. That is 30% or more, so drought-hardy crops rate higher and thirsty crops lower.":"बारिश हर साल लगभग {1}% बदलती है। यह 30% या ज़्यादा है, इसलिए सूखा सहने वाली फसलों की रेटिंग ऊपर और ज़्यादा पानी वाली फसलों की नीचे जाती है।",
+"Rain changes about {1}% from year to year. That is below 30%, so this rule does not change ratings here.":"बारिश हर साल लगभग {1}% बदलती है। यह 30% से कम है, इसलिए यह नियम यहां रेटिंग नहीं बदलता।",
+"⭐ How a rating is made":"⭐ रेटिंग कैसे बनती है","Each rule adds or takes away points for a crop:":"हर नियम किसी फसल के अंक बढ़ाता या घटाता है:","3 points or more: Good fit":"3 या ज़्यादा अंक: अच्छा विकल्प","1 to 2 points: Possible":"1 से 2 अंक: चल सकता है","0 or less: Poor fit":"0 या कम: कम उपयुक्त",
+"Other rules use your answers: water, soil, salt crust and the crop grown before. A legume adds nitrogen; the same crop family twice in a row rates lower.":"बाकी नियम आपके जवाबों से चलते हैं: पानी, मिट्टी, नमक की सफ़ेद परत और पिछली फसल। दलहनी फसल नाइट्रोजन जोड़ती है; एक ही कुल की फसल लगातार दो बार लेने पर रेटिंग नीचे जाती है।",
+"Season: Kharif = monsoon (June to October), Rabi = winter (October to March), Zaid = summer (March to June). Any season = can be grown all year.":"मौसम: खरीफ = बरसात (जून से अक्टूबर), रबी = सर्दी (अक्टूबर से मार्च), ज़ायद = गर्मी (मार्च से जून)। कोई भी मौसम = पूरे साल उगा सकते हैं।",
+"Family: crops of the same family get the same pests and diseases. N-fixing: legumes, which add nitrogen to the soil.":"कुल: एक ही कुल की फसलों में एक जैसे कीट और रोग लगते हैं। नाइट्रोजन स्थिरीकरण: दलहनी फसलें, जो मिट्टी में नाइट्रोजन जोड़ती हैं।",
+"Source: NASA POWER computer-model estimates for one point in the district, not rain gauges.":"स्रोत: नासा पावर, ज़िले के एक बिंदु के लिए कंप्यूटर मॉडल के अनुमान, वर्षा मापक यंत्र के आंकड़े नहीं।",
+"Copy these numbers from your Soil Health Card or soil test report. Leave a box empty if you do not have it.":"ये आंकड़े अपने मृदा स्वास्थ्य कार्ड या मिट्टी जांच रिपोर्ट से भरें। जो आंकड़ा न हो, उसका खाना खाली छोड़ दें।",
+"Have a Soil Health Card? Add its numbers later from the 🧪 Soil button.":"मृदा स्वास्थ्य कार्ड है? उसके आंकड़े बाद में 🧪 मिट्टी बटन से भरें।",
+"Optional details that make the plans better: water, soil type, farming system, money and labour. Skip anything you do not know.":"योजनाओं को बेहतर बनाने वाली वैकल्पिक जानकारी: पानी, मिट्टी का प्रकार, खेती का तरीका, पैसा और मज़दूर। जो न पता हो, उसे छोड़ दें।",
+"📤 Share report (PDF)":"📤 रिपोर्ट भेजें (पीडीएफ़)","Rain by month: usual year and this year":"महीने के हिसाब से बारिश: आम साल और इस साल","Home":"होम","Menu":"मेन्यू","Making PDF…":"पीडीएफ़ बन रही है…","PDF ready: tap again to share":"पीडीएफ़ तैयार है: भेजने के लिए फिर से दबाएं","PDF saved to your downloads":"पीडीएफ़ आपके डाउनलोड में सेव हो गई",
+"Rain, heat and greenness (NDVI) from NASA data for your district. NDVI shows how green the land is, which hints at plant vigour but is not a yield forecast.":"आपके ज़िले के लिए नासा डेटा से वर्षा, गर्मी और हरियाली (एनडीवीआई)। एनडीवीआई बताता है कि ज़मीन कितनी हरी है; यह पौधों की बढ़त का संकेत है, पैदावार का अनुमान नहीं।",
+"General steps for coping with dry spells, heat, wind and salty soils. These are practices to discuss with your local agriculture office, not prescriptions.":"सूखे, गर्मी, हवा और खारी मिट्टी से निपटने के सामान्य उपाय। इन्हें स्थानीय कृषि कार्यालय से चर्चा करके अपनाएं; ये पक्की सलाह नहीं हैं।",
+"Work out costs, revenue and break-even prices from your own figures. The app holds no price or cost data.":"अपने आंकड़ों से लागत, आमदनी और न्यूनतम लाभकारी कीमत निकालें। ऐप में कीमत या लागत का कोई डेटा नहीं है।",
+"The simple agronomy rules behind the ratings. They are starter rules and need checking against Rajasthan advisories.":"रेटिंग के पीछे के सरल कृषि नियम। ये शुरुआती नियम हैं और राजस्थान की कृषि सलाह से इनकी जांच ज़रूरी है।",
+"1. Describe the field":"1. खेत का विवरण","Farming system and farmer profile":"खेती का तरीका और किसान की जानकारी","2. Crop rotation plan":"2. फसल चक्र योजना","3. Options for the next season":"3. अगले मौसम के विकल्प","4. Soil health":"4. मिट्टी की सेहत","5. Climate adaptation with NASA data":"5. नासा डेटा के साथ मौसम अनुकूलन","6. Adaptation actions":"6. अनुकूलन उपाय","7. Economics (your own numbers)":"7. लागत और आमदनी (आपके आंकड़े)","8. Crop rules used":"8. उपयोग किए गए फसल नियम","Disclaimer":"ज़रूरी सूचना",
+"Ratings come from simple general farming rules, not local recommendations. They do not know your market, seed, pests or sowing dates. Check every plan with your Krishi Vigyan Kendra or agriculture university before acting.":"रेटिंग सामान्य कृषि नियमों पर आधारित हैं, स्थानीय सिफारिश नहीं। इन्हें आपकी मंडी, बीज, कीट या बुवाई के समय की जानकारी नहीं है। कोई भी योजना अपनाने से पहले कृषि विज्ञान केंद्र या कृषि विश्वविद्यालय से सलाह लें।",
+"District":"ज़िला","Next season":"अगला मौसम","Previous crop":"पिछली फसल","Water access":"पानी की उपलब्धता","Soil texture":"मिट्टी का प्रकार","Organic carbon (%) from soil test":"मिट्टी जांच से जैविक कार्बन (%)","Soil pH":"मिट्टी का पीएच","EC (dS/m)":"ईसी (डीएस/मीटर)","optional":"वैकल्पिक","Jodhpur":"जोधपुर","Barmer":"बाड़मेर","Sikar":"सीकर","Kharif (monsoon)":"खरीफ (मानसून)","Rabi (winter)":"रबी (सर्दी)","Zaid (summer)":"ज़ायद (गर्मी)","Kharif":"खरीफ","Rabi":"रबी","Rainfed only":"केवल बारानी","Limited irrigation":"सीमित सिंचाई","Reliable irrigation":"भरोसेमंद सिंचाई","Not sure":"पता नहीं","Sandy":"रेतीली","Loamy":"दोमट",
+"Farming system":"खेती का तरीका","Open field":"खुला खेत","Horticulture and orchards":"बागवानी और बाग","Protected (polyhouse, shade net)":"संरक्षित (पॉलीहाउस, शेड नेट)","Agroforestry, trees and fodder":"कृषि-वानिकी, पेड़ और चारा","Investment capacity":"निवेश क्षमता","Low":"कम","Medium":"मध्यम","High":"अधिक","Credit access":"कर्ज़ की सुविधा","Credit available":"कर्ज़ मिल सकता है","No credit":"कर्ज़ नहीं","Market access":"मंडी तक पहुंच","Market nearby":"मंडी पास है","Market far away":"मंडी दूर है","Labour":"मज़दूर","Available":"उपलब्ध","Scarce":"कम मिलते हैं","Risk tolerance":"जोखिम सहने की क्षमता",
+"Fill example field":"उदाहरण खेत भरें","Preview climate panel with placeholder rainfall":"नमूना वर्षा से मौसम पैनल देखें","Copy plan":"योजना कॉपी करें","Preview only: these Jodhpur rainfall figures are made-up placeholders, not NASA data. Tap \"Check for latest district data\" to load the real NASA data.":"केवल झलक: जोधपुर के ये वर्षा आंकड़े नमूने हैं, नासा डेटा नहीं। असली नासा डेटा के लिए \"ज़िले का नया डेटा देखें\" दबाएं।","Four seasons ahead, picking the best fit each time and carrying the choice forward as the previous crop.":"अगले चार मौसम: हर बार सबसे उपयुक्त फसल चुनकर उसे अगली बार की पिछली फसल माना गया है।","Best fit first. Tap a crop to see its details and why it was rated that way.":"सबसे उपयुक्त फसल पहले। विवरण और रेटिंग का कारण देखने के लिए फसल पर टैप करें।",
+"Strong fit":"बहुत उपयुक्त","Reasonable fit":"ठीक-ठाक उपयुक्त","Weak fit":"कम उपयुक्त","Why this rating":"यह रेटिंग क्यों","Fallow / none":"परती / कोई नहीं","{1}, season {2}":"{1}, मौसम {2}",
+"Same crop family as the previous crop: carries over pests and diseases and draws the same nutrients.":"पिछली फसल वाला ही कुल: कीट और रोग आगे बढ़ते हैं और वही पोषक तत्व खिंचते हैं।","Follows a legume, which leaves some nitrogen behind.":"दलहन के बाद, जो कुछ नाइट्रोजन छोड़ जाती है।","Adds a nitrogen-fixing legume to the rotation.":"फसल चक्र में नाइट्रोजन जोड़ने वाली दलहनी फसल आती है।","Legume after a fallow helps rebuild soil nitrogen.":"परती के बाद दलहन मिट्टी की नाइट्रोजन बढ़ाने में मदद करती है।","Water need matches your water access.":"पानी की ज़रूरत आपके पानी की उपलब्धता से मेल खाती है।","High water demand is risky with this water access.":"इतने पानी में ज़्यादा पानी वाली फसल जोखिम भरी है।","Moderate water demand is a stretch without more irrigation.":"ज़्यादा सिंचाई के बिना मध्यम पानी वाली फसल कठिन है।","Sandy soil holds little water, which hurts thirsty crops.":"रेतीली मिट्टी कम पानी रोकती है, जिससे ज़्यादा पानी वाली फसलों को नुकसान होता है।","Your EC reading suggests salinity, and this crop is {1}.":"आपकी ईसी जांच लवणता दिखाती है, और यह फसल {1} है।","sensitive":"लवणता के प्रति संवेदनशील","only moderately tolerant":"केवल कुछ हद तक सहनशील","Better tolerance of the salinity your EC reading suggests.":"आपकी ईसी जांच में दिख रही लवणता को यह बेहतर सहती है।","Low organic carbon: legumes and residues help the soil.":"जैविक कार्बन कम है: दलहन और फसल अवशेष मिट्टी सुधारते हैं।","Rainfall in the NASA record swings widely between years, which favours drought-hardy crops.":"नासा रिकॉर्ड में वर्षा साल-दर-साल बहुत बदलती है, इसलिए सूखा सहने वाली फसलें बेहतर हैं।","Rainfall swings widely between years, adding risk for a high-demand crop.":"वर्षा साल-दर-साल बहुत बदलती है, जिससे ज़्यादा पानी वाली फसल का जोखिम बढ़ता है।","High investment against a low investment capacity.":"निवेश क्षमता कम है और लागत अधिक है।","High up-front cost and no credit access.":"शुरुआती लागत अधिक है और कर्ज़ की सुविधा नहीं है।","Larger financial downside than your risk tolerance suggests.":"आपकी जोखिम सहने की क्षमता से ज़्यादा नुकसान का खतरा।","More labour-intensive, and you report scarce labour.":"इसमें ज़्यादा मज़दूरी लगती है और मज़दूर कम मिलते हैं।","Perishable produce with a distant market.":"जल्दी खराब होने वाली उपज और मंडी दूर है।","No strong factor either way from the inputs given.":"दी गई जानकारी से कोई बड़ा कारण नहीं दिखता।","No catalogued crop for this system and season. Consider fodder, fallow with moisture conservation, or another system.":"इस तरीके और मौसम के लिए सूची में कोई फसल नहीं। चारा, नमी बचाकर परती, या कोई और तरीका सोचें।","No catalogued crop for this system and season. Try another system or season.":"इस तरीके और मौसम के लिए सूची में कोई फसल नहीं। कोई और तरीका या मौसम चुनें।",
+"Fit is for the field described below.":"उपयुक्तता आपके बताए खेत के अनुसार है।","{1}, {2}, {3}, water need {4}, salt tolerance {5}":"{1}, {2}, {3}, पानी की ज़रूरत {4}, लवण सहनशीलता {5}","Any season":"हर मौसम","open field":"खुला खेत","horticulture":"बागवानी","protected cultivation":"संरक्षित खेती","agroforestry and fodder":"कृषि-वानिकी और चारा","low":"कम","medium":"मध्यम","high":"अधिक","moderate":"मध्यम","No crop found. Try another name, season or farming system.":"कोई फसल नहीं मिली। दूसरा नाम, मौसम या खेती का तरीका आज़माएं।",
+"Cereal":"अनाज","Legume":"दलहन","Grass":"घास","Brassica":"सरसों कुल","Cucurbit":"कद्दू कुल","Solanaceae":"बैंगन कुल","Apiaceae":"धनिया कुल","Malvaceae":"कपास कुल","Palm":"ताड़ कुल","Rutaceae":"नींबू कुल","Pedaliaceae":"तिल कुल","Euphorbiaceae":"अरंडी कुल","Asteraceae":"सूरजमुखी कुल","Lythraceae":"अनार कुल","Amaryllidaceae":"प्याज़ कुल","Rhamnaceae":"बेर कुल","Myrtaceae":"अमरूद कुल","Phyllanthaceae":"आंवला कुल","Boraginaceae":"लसोड़ा कुल","Asphodelaceae":"ग्वारपाठा कुल","Bignoniaceae":"रोहिड़ा कुल","Plantaginaceae":"ईसबगोल कुल",
+"Enter soil test values above for a soil health reading. Without a test, this app does not guess your soil.":"मिट्टी की सेहत जानने के लिए 'मेरा खेत' में मिट्टी जांच के आंकड़े भरें। जांच के बिना ऐप अनुमान नहीं लगाता।","Organic carbon {1}% is low. Rotations with legumes and returned crop residue are the usual direction; confirm with local advice.":"जैविक कार्बन {1}% कम है। आमतौर पर दलहन वाला फसल चक्र और फसल अवशेष लौटाना मदद करता है; स्थानीय सलाह से पुष्टि करें।","Organic carbon {1}% is medium.":"जैविक कार्बन {1}% मध्यम है।","Organic carbon {1}% is high.":"जैविक कार्बन {1}% अधिक है।","pH {1} is strongly alkaline. Possible sodicity: get an expert diagnosis before choosing amendments.":"पीएच {1} बहुत क्षारीय है। सोडियम की समस्या हो सकती है: सुधारक डालने से पहले विशेषज्ञ से जांच कराएं।","pH {1} is acidic.":"पीएच {1} अम्लीय है।","pH {1} is in a workable range for most crops.":"पीएच {1} ज़्यादातर फसलों के लिए ठीक है।","EC {1} dS/m indicates salinity. Salt-sensitive crops (sesame, gram, cumin) are penalised in the ranking.":"ईसी {1} डीएस/मीटर लवणता दिखाता है। लवण-संवेदनशील फसलों (तिल, चना, जीरा) की रेटिंग घटाई गई है।","EC {1} dS/m is not in the saline range.":"ईसी {1} डीएस/मीटर लवणीय सीमा में नहीं है।","Sandy soil: low water retention and wind erosion risk. Residue cover and shelterbelts are common responses; check local guidance.":"रेतीली मिट्टी: पानी कम रुकता है और हवा से कटाव का खतरा है। फसल अवशेष ढकना और पेड़ों की कतार आम उपाय हैं; स्थानीय सलाह लें।",
+"No NASA data yet for {1}. Connect to the internet and tap \"Check for latest district data\".":"{1} के लिए अभी नासा डेटा नहीं है। इंटरनेट चालू करके \"ज़िले का नया डेटा देखें\" दबाएं।",": average rain {1} mm a year ({2}), change between years {3}%.":": औसत वर्षा {1} मिमी प्रति वर्ष ({2}), सालों के बीच बदलाव {3}%।",": average rain {1} mm a year ({2}), change between years {3}%. This is below the 30% mark used here, so rain does not change the crop ranking.":": औसत वर्षा {1} मिमी प्रति वर्ष ({2}), सालों के बीच बदलाव {3}%। यह यहां इस्तेमाल की गई 30% की सीमा से कम है, इसलिए वर्षा से फसलों का क्रम नहीं बदलता।","High variability: the ranking now favours drought-hardy crops.":"उतार-चढ़ाव अधिक है: अब रेटिंग सूखा सहने वाली फसलों को आगे रखती है।","{1} mm":"{1} मिमी","so far":"अब तक","so far, to {1}":"अब तक, {1} तक","Source: NASA POWER computer-model estimates for one point in the district, not rain gauges. The 30% mark is a simple rule of thumb, not an official drought index.":"स्रोत: नासा पावर, ज़िले के एक बिंदु के लिए कंप्यूटर मॉडल के अनुमान, वर्षा मापक यंत्र के आंकड़े नहीं। 30% की सीमा एक साधारण अनुमान है, सरकारी सूखा सूचकांक नहीं।","This year's figures come straight from NASA, checked on {1}.":"इस साल के आंकड़े सीधे नासा से लिए गए, {1} को जांचे गए।","Vegetation (NDVI) and heat":"हरियाली (एनडीवीआई) और गर्मी","No NDVI observations with at least 50% valid pixels for this district.":"इस ज़िले के लिए कम से कम 50% साफ़ पिक्सेल वाला कोई एनडीवीआई अवलोकन नहीं।","NDVI {1}, {2} obs, mean max {3} °C":"एनडीवीआई {1}, {2} अवलोकन, औसत अधिकतम {3} डिग्री सेल्सियस","NDVI {1}, {2} obs (few, treat with caution), mean max {3} °C":"एनडीवीआई {1}, {2} अवलोकन (कम, सावधानी से देखें), औसत अधिकतम {3} डिग्री सेल्सियस",
+"Checking NASA for new data…":"नासा से नया डेटा देखा जा रहा है…","Checked with NASA on {1}. Rain and heat: up to {2}. Greenness from satellite: up to {3}.":"{1} को नासा से जांचा गया। वर्षा और गर्मी: {2} तक। उपग्रह से हरियाली: {3} तक।","No internet. Showing saved data. Rain and heat: up to {1}. Greenness from satellite: up to {2}.":"इंटरनेट नहीं है। सहेजा हुआ डेटा दिख रहा है। वर्षा और गर्मी: {1} तक। उपग्रह से हरियाली: {2} तक।","Could not reach NASA just now. Rain and heat: up to {1}. Greenness from satellite: up to {2}.":"अभी नासा से संपर्क नहीं हो सका। वर्षा और गर्मी: {1} तक। उपग्रह से हरियाली: {2} तक।","Rain and heat: up to {1}. Greenness from satellite: up to {2}.":"वर्षा और गर्मी: {1} तक। उपग्रह से हरियाली: {2} तक।","No NASA data yet. Connect to the internet and tap the button above.":"अभी नासा डेटा नहीं है। इंटरनेट चालू करके ऊपर वाला बटन दबाएं।","Saved NASA data (no internet)":"सहेजा हुआ नासा डेटा (इंटरनेट नहीं)","Search crops":"फसल खोजें","Jump to a section":"किसी भाग पर जाएं","NDVI {1}, {2} obs":"एनडीवीआई {1}, {2} अवलोकन","NDVI {1}, {2} obs (few, treat with caution)":"एनडीवीआई {1}, {2} अवलोकन (कम, सावधानी से देखें)","Yearly means of observations with at least 50% valid pixels. NDVI measures greenness and is affected by crop type, growth stage and soil background, so it is context and not a yield forecast.":"कम से कम 50% साफ़ पिक्सेल वाले अवलोकनों का सालाना औसत। एनडीवीआई हरियाली मापता है और फसल, बढ़त की अवस्था व मिट्टी से प्रभावित होता है, इसलिए यह केवल संदर्भ है, पैदावार का अनुमान नहीं।",
+"↻ Check for latest district data":"↻ ज़िले का नया डेटा देखें","The app checks NASA for new rain and heat data each time it opens with internet.":"इंटरनेट होने पर ऐप हर बार खुलते ही नासा से वर्षा और गर्मी का नया डेटा देखता है।","📂 Load a data file yourself (advanced)":"📂 खुद डेटा फ़ाइल लोड करें (विशेषज्ञों के लिए)","That file is not a NASA data file for this app.":"यह फ़ाइल इस ऐप की नासा डेटा फ़ाइल नहीं है।",
+"Check the seasonal forecast and monsoon onset before sowing, and stagger sowing if the first rain is weak.":"बुवाई से पहले मौसम का पूर्वानुमान और मानसून की शुरुआत देखें; पहली बारिश कमज़ोर हो तो बुवाई अलग-अलग समय पर करें।","Prefer drought-hardy crops and short-duration varieties. Ask your KVK which varieties are recommended locally.":"सूखा सहने वाली फसलें और कम अवधि की किस्में चुनें। स्थानीय किस्मों के लिए कृषि विज्ञान केंद्र से पूछें।","Conserve soil moisture with residue cover or mulch, and consider rainwater harvesting for a protective irrigation.":"फसल अवशेष या मल्च से मिट्टी की नमी बचाएं, और जीवनरक्षक सिंचाई के लिए वर्षा जल संचयन करें।","Reduce wind erosion with boundary tree rows or shelterbelts.":"मेड़ पर पेड़ों की कतार से हवा का कटाव घटाएं।","Test your irrigation water as well as the soil, since salty water adds to the problem.":"मिट्टी के साथ सिंचाई के पानी की भी जांच कराएं, क्योंकि खारा पानी समस्या बढ़ाता है।","Spread risk by mixing a legume into the rotation or intercropping, where local advice supports it.":"स्थानीय सलाह के अनुसार फसल चक्र में दलहन या अंतरफसल लेकर जोखिम बांटें।","General practices, not prescriptions. Doses and schedules should come from local agricultural advisories.":"ये सामान्य उपाय हैं, पक्की सलाह नहीं। मात्रा और समय स्थानीय कृषि सलाह से तय करें।",
+"This app holds no price or cost data. Enter figures from your records or local mandi and the app only does the arithmetic. Results are not forecasts.":"ऐप में कीमत या लागत का कोई डेटा नहीं है। अपने रिकॉर्ड या स्थानीय मंडी के आंकड़े भरें; ऐप केवल हिसाब करता है। नतीजे अनुमान नहीं हैं।","Area (acres)":"क्षेत्रफल (एकड़)","Cost of cultivation per acre (₹)":"प्रति एकड़ खेती की लागत (₹)","Expected yield per acre":"प्रति एकड़ अनुमानित पैदावार","Expected price per unit of yield (₹)":"पैदावार की प्रति इकाई अनुमानित कीमत (₹)","Capital cost: structure, drip, orchard set-up (₹)":"पूंजी लागत: ढांचा, ड्रिप, बाग लगाना (₹)","Useful life of capital (years)":"पूंजी की उपयोगी आयु (साल)","Enter area, yield and price to see the arithmetic.":"हिसाब देखने के लिए क्षेत्रफल, पैदावार और कीमत भरें।","Revenue: {1}":"कुल आमदनी: {1}","Total cost including yearly share of capital: {1}":"कुल लागत (पूंजी का सालाना हिस्सा मिलाकर): {1}","Net return: {1}":"शुद्ध लाभ: {1}","Break-even price: ₹{1} per unit; break-even yield: {2} per acre":"न्यूनतम लाभकारी कीमत: ₹{1} प्रति इकाई; न्यूनतम पैदावार: {2} प्रति एकड़","If price or yield falls 20%: {1}. If both fall 20%: {2}.":"कीमत या पैदावार 20% घटे तो: {1}। दोनों 20% घटें तो: {2}।","Compare these downside figures across options, not just the best case. Check subsidies, insurance and procurement with official sources.":"केवल अच्छे हालात नहीं, घाटे वाले आंकड़ों की भी तुलना करें। सब्सिडी, बीमा और सरकारी खरीद की जानकारी सरकारी स्रोतों से लें।",
+"Starter rules for every crop (not verified)":"हर फसल के शुरुआती नियम (जांचे नहीं गए)","Check each row against Rajasthan advisories and correct the table in the code.":"हर पंक्ति को राजस्थान की कृषि सलाह से मिलाएं और कोड में तालिका सुधारें।","Copy rules as CSV":"नियम सीएसवी फ़ाइल के रूप में कॉपी करें","Crop":"फसल","Season":"मौसम","System":"तरीका","Family":"कुल","N-fixing":"नाइट्रोजन स्थिरीकरण","Water need (1 low-3 high)":"पानी की ज़रूरत (1 कम-3 अधिक)","Salt tolerance (1 low-3 high)":"लवण सहनशीलता (1 कम-3 अधिक)","Investment (1-3)":"निवेश (1-3)","Verified source":"जांचा गया स्रोत","yes":"हां","no":"नहीं","K":"खरीफ","R":"रबी","Z":"ज़ायद","A":"हर मौसम","open":"खुला खेत","hort":"बागवानी","prot":"संरक्षित","agro":"कृषि-वानिकी",
+"Bajra (pearl millet)":"बाजरा","Moth bean":"मोठ","Guar":"ग्वार","Sesame":"तिल","Cotton":"कपास","Mustard":"सरसों","Gram (chickpea)":"चना","Wheat":"गेहूं","Cumin":"जीरा","Sorghum (jowar)":"ज्वार","Maize":"मक्का","Mung bean":"मूंग","Cowpea":"चौला (लोबिया)","Groundnut":"मूंगफली","Castor":"अरंडी","Soybean":"सोयाबीन","Sunflower":"सूरजमुखी","Barley":"जौ","Taramira (rocket)":"तारामीरा","Isabgol (psyllium)":"ईसबगोल","Coriander":"धनिया","Fenugreek (methi)":"मेथी","Field pea":"मटर","Fennel (saunf)":"सौंफ","Ber":"बेर","Pomegranate":"अनार","Date palm":"खजूर","Aonla (amla)":"आंवला","Bael":"बेल","Lasora (gonda)":"लसोड़ा (गूंदा)","Guava":"अमरूद","Kagzi lime":"कागज़ी नींबू","Aloe vera":"ग्वारपाठा (एलोवेरा)","Henna (mehndi)":"मेहंदी","Chilli":"मिर्च","Okra":"भिंडी","Onion":"प्याज़","Watermelon / muskmelon":"तरबूज / खरबूजा","Cucumber (polyhouse)":"खीरा (पॉलीहाउस)","Capsicum (polyhouse)":"शिमला मिर्च (पॉलीहाउस)","Tomato (polyhouse)":"टमाटर (पॉलीहाउस)","Khejri":"खेजड़ी","Rohida":"रोहिड़ा","Sewan grass":"सेवण घास","Dhaman grass":"धामण घास","Berseem":"बरसीम","Lucerne":"रिजका","Fodder sorghum":"चारा ज्वार","Cowpea fodder":"चारा लोबिया","Napier grass":"नेपियर घास",
+// Three-question start, the three plans and the NASA box (12 Nov 2026). Longer patterns must come before shorter ones they contain.
+"Step {1} of 3":"चरण {1} / 3","Where is your field?":"आपका खेत कहां है?","📍 Use my location":"📍 मेरी लोकेशन लें","Your location stays on this phone.":"आपकी लोकेशन इसी फ़ोन पर रहती है।","or tap your district":"या अपना ज़िला चुनें","🗺️ {1}":"🗺️ {1}","📍 {1}":"📍 {1}",
+"Finding your location…":"आपकी लोकेशन ढूंढी जा रही है…","Location is not available on this phone. Tap your district.":"इस फ़ोन पर लोकेशन उपलब्ध नहीं है। अपना ज़िला चुनें।","Could not get your location. Tap your district instead.":"लोकेशन नहीं मिल सकी। अपना ज़िला चुनें।","Closest area with NASA data: {1}, {2} km away.":"नासा डेटा वाला सबसे पास का इलाका: {1}, {2} किमी दूर।","Your field may be outside the three districts this app covers.":"आपका खेत शायद इस ऐप के तीन ज़िलों से बाहर है।",
+"What do you usually grow?":"आप आम तौर पर क्या उगाते हैं?","Only crops that can suit your area in each season are shown.":"हर मौसम में सिर्फ़ वही फसलें दिखाई गई हैं जो आपके इलाके में ठीक बैठ सकती हैं।","No crop on our list suits this season here. Pick yours from the list below.":"हमारी सूची की कोई फसल यहां इस मौसम में ठीक नहीं बैठती। नीचे की सूची से अपनी फसल चुनें।","My crop is not here":"मेरी फसल यहां नहीं है","Step {1} of 4":"चरण {1} / 4","What is your soil like?":"आपकी मिट्टी कैसी है?","Loose, water drains fast":"ढीली, पानी जल्दी रिस जाता है","Soft and crumbly":"नरम और भुरभुरी","Heavy (clay)":"भारी (चिकनी मिट्टी)","Sticky when wet, cracks when dry":"गीली होने पर चिपचिपी, सूखने पर दरारें","Do you see a white salt crust on the soil?":"क्या मिट्टी पर सफ़ेद नमक की परत दिखती है?","Yes":"हां","No":"नहीं","Sandy soil":"रेतीली मिट्टी","Loamy soil":"दोमट मिट्टी","Heavy (clay) soil":"भारी (चिकनी) मिट्टी","White salt crust seen":"सफ़ेद नमक की परत दिखती है","You have enough irrigation for this crop.":"इस फसल के लिए आपके पास पूरी सिंचाई है।","You see a white salt crust, a sign of salty soil, and this crop is {1}.":"आपको मिट्टी पर सफ़ेद नमक की परत दिखती है, जो खारी मिट्टी का संकेत है, और यह फसल {1} है।","Better tolerance of the salt your soil shows (white crust).":"आपकी मिट्टी में दिखने वाले नमक (सफ़ेद परत) को यह फसल बेहतर सह लेती है।","🌱 Best crops for next season":"🌱 अगले मौसम के लिए सबसे अच्छी फसलें","Best crops for next season":"अगले मौसम के लिए सबसे अच्छी फसलें","After {1}, for your water and soil.":"{1} के बाद, आपके पानी और मिट्टी के हिसाब से।","For your water and soil.":"आपके पानी और मिट्टी के हिसाब से।","Ranked by how well each crop fits your field.":"क्रम इस बात से है कि हर फसल आपके खेत में कितनी ठीक बैठती है।","Usual yield in {1}: {2} quintals per hectare ({3} in a poor year, {4} in a good year).":"{1} में आम पैदावार: {2} क्विंटल प्रति हेक्टेयर (खराब साल में {3}, अच्छे साल में {4})।","No official yield figure for this crop in {1}.":"{1} में इस फसल की पैदावार का कोई सरकारी आंकड़ा नहीं है।","Yields: Government of India crop statistics (DES), average of all farms in the district, 2018-19 to 2022-23. Not a promise for your field.":"पैदावार: भारत सरकार के फसल आंकड़े (डीईएस), ज़िले के सभी खेतों का औसत, 2018-19 से 2022-23। यह आपके खेत के लिए वादा नहीं है।","📍 Your phone is about {1} km from the place saved for your field.":"📍 आपका फ़ोन आपके खेत की सहेजी गई जगह से लगभग {1} किमी दूर है।","Is your field here?":"क्या आपका खेत यहीं है?","✅ Yes, my field is here":"✅ हां, मेरा खेत यहीं है","No, keep my saved field":"नहीं, सहेजा गया खेत ही रखें","This place may be outside the three districts this app covers.":"यह जगह इस ऐप के तीन ज़िलों से बाहर हो सकती है।","Tap this when you are standing in your field. Your location is rounded to about 10 km and only used to ask NASA for the weather there.":"जब आप अपने खेत में खड़े हों, तब इसे दबाएं। आपकी लोकेशन लगभग 10 किमी तक गोल की जाती है और केवल वहां का मौसम नासा से पूछने के लिए इस्तेमाल होती है।","Could not get your location. Please try again.":"आपकी लोकेशन नहीं मिल पाई। कृपया फिर से कोशिश करें।","Location is blocked for this app. Allow location for this site in your browser settings, or tap your district below.":"इस ऐप के लिए लोकेशन बंद है। ब्राउज़र की सेटिंग में इस साइट के लिए लोकेशन चालू करें, या नीचे अपना ज़िला चुनें।","Location is blocked for this app. Allow location for this site in your browser settings, or tap ✏️ Change answers to pick your district.":"इस ऐप के लिए लोकेशन बंद है। ब्राउज़र की सेटिंग में इस साइट के लिए लोकेशन चालू करें, या अपना ज़िला चुनने के लिए ✏️ जवाब बदलें दबाएं।","Your phone could not find where it is. Turn on location (GPS) and try again.":"फ़ोन अपनी जगह नहीं ढूंढ पाया। लोकेशन (जीपीएस) चालू करके फिर से कोशिश करें।","Finding your location took too long. Please try again.":"लोकेशन ढूंढने में बहुत देर लगी। कृपया फिर से कोशिश करें।","Crops that are a poor fit here":"यहां कम उपयुक्त फसलें","Pick the monsoon crop first.":"पहले मानसून (खरीफ) की फसल चुनें।","❌ {1} (Poor fit)":"❌ {1} (कम उपयुक्त)","❌ Poor fit here.":"❌ यहां कम उपयुक्त।","The app's crop rules give this crop no points here.":"ऐप के फसल नियम यहां इस फसल को कोई अंक नहीं देते।","You can still choose it. Your plans will show other choices.":"आप फिर भी इसे चुन सकते हैं। आपकी योजनाओं में दूसरे विकल्प दिखेंगे।","Monsoon season (kharif)":"मानसून का मौसम (खरीफ)","Winter season (rabi)":"सर्दी का मौसम (रबी)","Other":"दूसरी फसल","Nothing":"कुछ नहीं","Nothing (field left empty)":"कुछ नहीं (खेत खाली)","Recommended crops":"सुझाई गई फसलें","Crops which save water":"पानी बचाने वाली फसलें","Crops which build soil":"मिट्टी सुधारने वाली फसलें","🗺️ Where the NASA data comes from":"🗺️ नासा डेटा कहां से आता है","The map needs internet. It will show when you are online.":"नक्शे के लिए इंटरनेट चाहिए। इंटरनेट आने पर यह दिखेगा।","Green: your district. Small squares: the 10 km farmland areas where NASA weather and satellite greenness are read. District outlines: OpenStreetMap.":"हरा: आपका ज़िला। छोटे चौकोर: 10 किमी के खेती वाले इलाके, जहां से नासा का मौसम और उपग्रह से हरियाली ली जाती है। ज़िले की सीमा: ओपनस्ट्रीटमैप।","Your area":"आपका इलाका","Farmland sample area (about 10 km). NASA weather and greenness for {1} come from here.":"खेती का नमूना इलाका (लगभग 10 किमी)। {1} के लिए नासा का मौसम और हरियाली यहीं से आती है।","Type a crop name to check it: bajra, ber, cumin":"फसल का नाम लिखकर जांचें: बाजरा, बेर, जीरा","Only crops that are a good fit for your field are listed. Tap a crop to see why.":"यहां सिर्फ़ वही फसलें हैं जो आपके खेत के लिए अच्छा विकल्प हैं। कारण देखने के लिए फसल पर टैप करें।","No crop is a good fit for this season with your answers. Type a crop name above to check it, and ask your KVK.":"आपके जवाबों के हिसाब से इस मौसम में कोई फसल अच्छा विकल्प नहीं है। ऊपर फसल का नाम लिखकर जांचें, और अपने केवीके से पूछें।","Choose a crop":"फसल चुनें","Pick one crop for each season.":"हर मौसम के लिए एक फसल चुनें।","Next →":"आगे →",
+"Water for this field?":"इस खेत के लिए पानी?","🌧️ Rain only":"🌧️ केवल बारिश","💧 Some irrigation":"💧 थोड़ी सिंचाई","🚿 Enough irrigation":"🚿 पूरी सिंचाई","Rain only":"केवल बारिश","Some irrigation":"थोड़ी सिंचाई","Enough irrigation":"पूरी सिंचाई","Pick how this field gets water.":"चुनें कि इस खेत को पानी कैसे मिलता है।","Show my plans →":"मेरी योजनाएं दिखाएं →",
+"More farm details (optional): soil test, money, labour. Add them later from the \"Farm details\" button.":"खेत का और विवरण (वैकल्पिक): मिट्टी जांच, पैसा, मज़दूर। इन्हें बाद में \"खेत का विवरण\" बटन से जोड़ें।",
+"Your field":"आपका खेत","✏️ Change answers":"✏️ जवाब बदलें","{1} · {2} → {3} · {4}":"{1} · {2} → {3} · {4}","More tools":"और जानकारी","My plans":"मेरी योजनाएं","Farm details":"खेत का विवरण","All crop options":"सभी फसल विकल्प",
+"Your three crop plans":"आपकी तीन फसल योजनाएं","📤 Share my plans":"📤 मेरी योजनाएं भेजें","My crop plans":"मेरी फसल योजनाएं","These plans are a starting point, not advice. Check them with your Krishi Vigyan Kendra (KVK) before changing crops.":"ये योजनाएं केवल शुरुआत हैं, पक्की सलाह नहीं। फसल बदलने से पहले अपने कृषि विज्ञान केंद्र से जांच कराएं।",
+"More farm details":"खेत का और विवरण","Advanced":"विशेषज्ञों के लिए","Crop rotation plan":"फसल चक्र योजना","Options for the next season":"अगले मौसम के विकल्प","Soil health":"मिट्टी की सेहत","Climate adaptation with NASA data":"नासा डेटा के साथ मौसम अनुकूलन","Adaptation actions":"अनुकूलन उपाय","Economics (your own numbers)":"लागत और आमदनी (आपके आंकड़े)","Crop rules used":"उपयोग किए गए फसल नियम","📂 Load a data file":"📂 डेटा फ़ाइल लोड करें",
+"Three crop plans for your field, side by side: what you grow now, a plan that saves water, and a plan that builds soil. Tap a plan to see why it was picked.":"आपके खेत के लिए तीन फसल योजनाएं, साथ-साथ: जो आप अभी उगाते हैं, पानी बचाने वाली योजना, और मिट्टी सुधारने वाली योजना। कोई योजना क्यों चुनी गई, यह देखने के लिए उस पर टैप करें।",
+"Optional details that make the plans better: soil test, farming system, money and labour. Skip anything you do not know.":"वैकल्पिक जानकारी जिससे योजनाएं बेहतर बनती हैं: मिट्टी जांच, खेती का तरीका, पैसा और मज़दूर। जो पता न हो, उसे छोड़ दें।",
+"What you grow now":"जो आप अभी उगाते हैं","Save water":"पानी बचाएं","Build soil":"मिट्टी सुधारें","Good fit":"अच्छा विकल्प","Possible":"चल सकता है","Poor fit":"कम उपयुक्त",
+"Water need: {1}":"पानी की ज़रूरत: {1}","Soil: adds nitrogen":"मिट्टी: नाइट्रोजन जुड़ती है","Soil: same family twice":"मिट्टी: एक ही कुल दो बार","Soil: no change":"मिट्टी: कोई बदलाव नहीं","Tap for why, evidence, benefits, gaps and risks ▾":"कारण, सबूत, फ़ायदे, कमियां और जोखिम देखने के लिए टैप करें ▾",
+"Why this plan":"यह योजना क्यों","Evidence":"सबूत","Benefits":"फ़ायदे","What we don't know":"क्या पता नहीं है","Check with your KVK":"कृषि विज्ञान केंद्र से पूछें",
+"This is what you grow now, kept for comparison.":"यह वही है जो आप अभी उगाते हैं, तुलना के लिए।","Picked because these crops need less water than what you grow now.":"इसलिए चुनी गई क्योंकि इन फसलों को आपकी अभी की फसलों से कम पानी चाहिए।","Picked because these crops need little water.":"इसलिए चुनी गई क्योंकि इन फसलों को कम पानी चाहिए।","Picked because it includes a legume, which adds nitrogen to the soil.":"इसलिए चुनी गई क्योंकि इसमें दलहनी फसल है, जो मिट्टी में नाइट्रोजन जोड़ती है।","It keeps a crop you already grow: {1}.":"इसमें आपकी एक जानी-पहचानी फसल बनी रहती है: {1}।",
+"You already know these crops, their seed and their market.":"इन फसलों, इनके बीज और मंडी को आप पहले से जानते हैं।","Needs less water than what you grow now.":"आपकी अभी की फसलों से कम पानी चाहिए।","Needs little water.":"कम पानी चाहिए।","Less loss if the rain is poor.":"बारिश कम हो तो नुकसान कम।","Adds nitrogen that the next crop can use.":"नाइट्रोजन जोड़ती है, जो अगली फसल के काम आती है।","Changing crop families breaks pest and disease build-up.":"फसल का कुल बदलने से कीट और रोग कम जमते हैं।",
+"Usual rain here is {1} mm a year and changes about {2}% between years (NASA).":"यहां आम तौर पर {1} मिमी सालाना वर्षा होती है और यह साल-दर-साल लगभग {2}% बदलती है (नासा)।","This year so far: {1} mm of rain (NASA, to {2}).":"इस साल अब तक: {1} मिमी वर्षा (नासा, {2} तक)।",
+"Your soil: no soil test entered yet.":"आपकी मिट्टी: अभी मिट्टी जांच नहीं भरी गई।","Which variety of {1} suits your area, and where to get seed.":"आपके इलाके में {1} की कौन सी किस्म ठीक है, और बीज कहां मिलेगा।","Price and demand for {1} at your mandi.":"आपकी मंडी में {1} की कीमत और मांग।","NASA data is for a 10 km farmland area near you, not your own field.":"नासा डेटा आपके पास के 10 किमी के खेती वाले इलाके का है, आपके अपने खेत का नहीं।",
+"Ask your KVK before changing crops.":"फसल बदलने से पहले अपने कृषि विज्ञान केंद्र से पूछें।","These crop rules have not yet been checked by agriculture experts.":"इन फसल नियमों की अभी कृषि विशेषज्ञों ने जांच नहीं की है।","Answer the questions on the home page to see your plans.":"अपनी योजनाएं देखने के लिए होम पेज पर सवालों के जवाब दें।",
+"🛰️ What NASA sees near {1}":"🛰️ नासा {1} के पास क्या देखता है","Usual rain: {1} mm a year ({2}). This year so far: {3} mm (to {4}).":"आम तौर पर वर्षा: {1} मिमी प्रति वर्ष ({2})। इस साल अब तक: {3} मिमी ({4} तक)।","Usual rain: {1} mm a year ({2}).":"आम तौर पर वर्षा: {1} मिमी प्रति वर्ष ({2})।","Rain changes about {1}% from one year to the next.":"वर्षा एक साल से दूसरे साल लगभग {1}% बदलती है।","Fields are barest in {1} and greenest in {2}.":"खेत {1} में सबसे सूने और {2} में सबसे हरे रहते हैं।",
+"After this year's monsoon, fields were {1}% less green than in earlier years.":"इस साल मानसून के बाद खेत पिछले सालों से {1}% कम हरे थे।","After this year's monsoon, fields were {1}% greener than in earlier years.":"इस साल मानसून के बाद खेत पिछले सालों से {1}% ज़्यादा हरे थे।","After this year's monsoon, fields were about as green as in earlier years.":"इस साल मानसून के बाद खेत पिछले सालों जितने ही हरे थे।","So far this year, {1} days reached 40 °C or more.":"इस साल अब तक {1} दिन तापमान 40 डिग्री सेल्सियस या उससे ज़्यादा रहा।",
+"Greenness by month (all years)":"महीने के हिसाब से हरियाली (सभी साल)","no clear picture":"साफ़ तस्वीर नहीं","Low = bare fields. High = green crops.":"कम = सूने खेत। ज़्यादा = हरी फसल।",
+"Jan":"जनवरी","Feb":"फ़रवरी","Mar":"मार्च","Apr":"अप्रैल","May":"मई","Jun":"जून","Jul":"जुलाई","Aug":"अगस्त","Sep":"सितंबर","Oct":"अक्टूबर","Nov":"नवंबर","Dec":"दिसंबर",
+"Your location is rounded to about 10 km and only used to ask NASA for the weather there.":"आपकी लोकेशन लगभग 10 किमी तक गोल की जाती है और केवल वहां का मौसम नासा से पूछने के लिए इस्तेमाल होती है।","Rain, heat and soil will be for your own location.":"वर्षा, गर्मी और मिट्टी के आंकड़े आपकी अपनी लोकेशन के होंगे।",
+"This year, {1}: {2} mm of rain, against {3} mm in a usual year ({4}%).":"इस साल {1}: {2} मिमी वर्षा, जबकि आम साल में {3} मिमी ({4}%)।","This year so far: {1} mm (to {2}).":"इस साल अब तक: {1} मिमी ({2} तक)।",
+"Days of 40 °C or more, {1}: {2} this year, {3} in a usual year.":"40 डिग्री सेल्सियस या ज़्यादा वाले दिन, {1}: इस साल {2}, आम साल में {3}।","Soil moisture is usually lowest in {1} and highest in {2}.":"मिट्टी की नमी आम तौर पर {1} में सबसे कम और {2} में सबसे ज़्यादा रहती है।",
+"Rain, heat and soil: your location, rounded to about 10 km. Greenness: farmland near {1}.":"वर्षा, गर्मी और मिट्टी: आपकी लोकेशन (लगभग 10 किमी तक)। हरियाली: {1} के पास के खेत।","Measured at a farmland point near {1}.":"{1} के पास खेती वाली एक जगह के आंकड़े।","🛰️ What NASA sees near your field":"🛰️ नासा आपके खेत के पास क्या देखता है",
+"Rain by month (usual year)":"महीने के हिसाब से वर्षा (आम साल)","this year: {1} mm":"इस साल: {1} मिमी","{1} days":"{1} दिन","Days of 40 °C or more":"40 डिग्री सेल्सियस या ज़्यादा वाले दिन","Soil moisture by month (usual year)":"महीने के हिसाब से मिट्टी की नमी (आम साल)",
+"0 = dry, 1 = soaked. A NASA computer-model estimate of the soil where roots grow, not a measurement. This year's newest values come from a different NASA model, so they are not compared here.":"0 = सूखी, 1 = पूरी भीगी। यह जड़ों वाली मिट्टी की नमी का नासा का कंप्यूटर मॉडल अनुमान है, माप नहीं। इस साल के सबसे नए आंकड़े नासा के दूसरे मॉडल से आते हैं, इसलिए यहां उनकी तुलना नहीं की गई।",
+"Needs little water in a dry year: this year's rain so far is {1}% of usual (NASA).":"सूखे साल में कम पानी वाली फसल: इस साल अब तक की वर्षा आम साल की {1}% है (नासा)।","A thirsty crop in a dry year: this year's rain so far is {1}% of usual (NASA).":"सूखे साल में ज़्यादा पानी वाली फसल: इस साल अब तक की वर्षा आम साल की {1}% है (नासा)।",
+"Little rain here (usual {1} mm a year, NASA), so little moisture is left for a winter crop that needs medium water.":"यहां वर्षा कम होती है (आम तौर पर {1} मिमी सालाना, नासा), इसलिए मध्यम पानी वाली सर्दी की फसल के लिए नमी कम बचती है।",
+"🛰️ Rules that use NASA data":"🛰️ नासा डेटा वाले नियम","Dry year: if this year's rain so far is below 75% of usual, crops that need little water score higher and thirsty crops score lower.":"सूखा साल: अगर इस साल अब तक की वर्षा आम साल की 75% से कम है, तो कम पानी वाली फसलों को ज़्यादा और ज़्यादा पानी वाली फसलों को कम अंक मिलते हैं।",
+"Dry area: where usual rain is below 500 mm a year and the field gets rain only, winter crops that need medium water score lower, and the \"Build soil\" plan leaves them out.":"कम वर्षा वाला इलाका: जहां आम तौर पर सालाना 500 मिमी से कम वर्षा होती है और खेत केवल बारिश पर है, वहां मध्यम पानी वाली सर्दी की फसलों को कम अंक मिलते हैं, और \"मिट्टी सुधारें\" योजना उन्हें छोड़ देती है।",
+"In this dry area, winter crops that need medium water were left out (NASA rain data).":"इस कम वर्षा वाले इलाके में मध्यम पानी वाली सर्दी की फसलें छोड़ दी गईं (नासा वर्षा डेटा)।",
+"It uses different crops from the water-saving plan, so you have two real choices.":"इसमें पानी बचाने वाली फसलों से अलग फसलें हैं, ताकि आपके पास दो सच्चे विकल्प हों।",
+"Rain that swings 30% or more from year to year favours drought-hardy crops.":"अगर वर्षा साल-दर-साल 30% या ज़्यादा बदलती है, तो सूखा सहने वाली फसलों को बढ़त मिलती है।","These cut-offs are starting suggestions and need checking with your KVK or CAZRI (Central Arid Zone Research Institute).":"ये सीमाएं शुरुआती सुझाव हैं; इनकी जांच अपने कृषि विज्ञान केंद्र या काज़री (केंद्रीय शुष्क क्षेत्र अनुसंधान संस्थान) से कराएं।",
+"Arid western zone (official farming zone), so little moisture is left for a winter crop that needs medium water.":"शुष्क पश्चिमी क्षेत्र (सरकारी कृषि क्षेत्र), इसलिए मध्यम पानी वाली सर्दी की फसल के लिए नमी कम बचती है।","In this arid zone, winter crops that need medium water were left out.":"इस शुष्क क्षेत्र में मध्यम पानी वाली सर्दी की फसलें छोड़ दी गईं।",
+"Dry year: if this year's rain so far is below 80% of usual (what IMD calls deficient rain), crops that need little water score higher and thirsty crops score lower.":"सूखा साल: अगर इस साल अब तक की वर्षा आम साल की 80% से कम है (आईएमडी इसे कम वर्षा कहता है), तो कम पानी वाली फसलों को ज़्यादा और ज़्यादा पानी वाली फसलों को कम अंक मिलते हैं।",
+"Arid zone: in the official arid western zone (Jodhpur, Barmer), winter crops that need medium water score lower on fields that get rain only, and the \"Build soil\" plan leaves them out.":"शुष्क क्षेत्र: सरकारी शुष्क पश्चिमी क्षेत्र (जोधपुर, बाड़मेर) में, केवल बारिश वाले खेतों पर मध्यम पानी वाली सर्दी की फसलों को कम अंक मिलते हैं, और \"मिट्टी सुधारें\" योजना उन्हें छोड़ देती है।",
+"The 80% line follows IMD, and the arid zone is the official farming zone used by ICAR. Both still need checking with your KVK or CAZRI (Central Arid Zone Research Institute).":"80% की सीमा आईएमडी के अनुसार है, और शुष्क क्षेत्र आईसीएआर का सरकारी कृषि क्षेत्र है। फिर भी दोनों की जांच अपने कृषि विज्ञान केंद्र या काज़री (केंद्रीय शुष्क क्षेत्र अनुसंधान संस्थान) से कराएं।",
+"My farm report":"मेरे खेत की रिपोर्ट","📄 My farm report":"📄 मेरे खेत की रिपोर्ट","📄 See my farm report":"📄 मेरे खेत की रिपोर्ट देखें","My report":"मेरी रिपोर्ट","Made on {1}":"{1} को बनी","What NASA sees":"नासा क्या देखता है","Your three plans":"आपकी तीन योजनाएं","Best fit for now: {1}":"अभी सबसे अच्छा विकल्प: {1}",
+"Things to watch":"ध्यान रखें","Good practices":"अच्छे तरीके","Before you change crops":"फसल बदलने से पहले","🖨️ Print or save as PDF":"🖨️ प्रिंट करें या पीडीएफ के रूप में सहेजें","📤 Share report":"📤 रिपोर्ट भेजें",
+"Rain, heat and soil: NASA POWER computer-model estimates. Greenness: NASA satellites.":"वर्षा, गर्मी और मिट्टी: नासा पावर के कंप्यूटर मॉडल अनुमान। हरियाली: नासा के उपग्रह।",
+"A one-page summary of your field, what NASA sees, and your three plans. Print it, save it, or share it.":"एक पन्ने में आपके खेत, नासा क्या देखता है, और आपकी तीन योजनाओं का सार। इसे प्रिंट करें, सहेजें या भेजें।",
+"{1} → {2}":"{1} → {2}",
+// Crop notes (Hindi written by Claude; needs review by a native speaker who knows farm terms)
+"Very drought-hardy cereal.":"बहुत सूखा सहने वाला अनाज।","Hardy legume, suits light soils.":"मज़बूत दलहन, हल्की (रेतीली) मिट्टी में अच्छी।","Legume, tolerates dry spells.":"दलहन, सूखे दौर सह लेती है।","Low water need, dislikes waterlogging and salt.":"कम पानी चाहिए; जलभराव और खारापन पसंद नहीं।","High water demand, tolerates some salinity.":"ज़्यादा पानी चाहिए; थोड़ा खारापन सह लेती है।","Moderate water need, common rabi oilseed.":"मध्यम पानी चाहिए; रबी की आम तिलहन फसल।","Legume, sensitive to salinity.":"दलहन; खारेपन से नुकसान होता है।","Needs dependable irrigation.":"भरोसेमंद सिंचाई चाहिए।","Spice crop sensitive to salinity and humid, disease-prone weather.":"मसाला फसल; खारेपन से नुकसान, और नमी वाले मौसम में रोग का खतरा।",
+"Drought-tolerant grain and fodder cereal.":"सूखा सहने वाला अनाज, दाने और चारे दोनों के लिए।","Needs more moisture than bajra, sensitive to salinity.":"बाजरे से ज़्यादा नमी चाहिए; खारेपन से नुकसान।","Short-duration legume.":"कम समय में पकने वाली दलहन।","Legume for grain, pods or fodder.":"दाने, फली या चारे के लिए दलहन।","Oilseed legume for light soils, sensitive to salinity.":"हल्की मिट्टी के लिए तिलहनी दलहन; खारेपन से नुकसान।","Hardy oilseed.":"मज़बूत तिलहन फसल।","Legume oilseed for the wetter south-east.":"तिलहनी दलहन, ज़्यादा बारिश वाले दक्षिण-पूर्व के लिए।","Oilseed with moderate water need.":"मध्यम पानी वाली तिलहन फसल।","Handles salinity and limited water better than wheat.":"गेहूं से बेहतर खारापन और कम पानी सह लेता है।","Low-input rabi oilseed on residual moisture.":"कम लागत वाली रबी तिलहन, खेत में बची नमी पर।","Medicinal seed crop, sensitive to rain at maturity.":"औषधीय बीज फसल; पकने के समय बारिश से नुकसान।","Spice and leaf crop.":"मसाले और पत्तों की फसल।","Legume spice and leaf crop.":"दलहनी मसाला और पत्तों की फसल।","Rabi legume.":"रबी की दलहन।","Spice crop.":"मसाला फसल।",
+"Hardy orchard fruit of arid regions.":"सूखे इलाकों का मज़बूत फलदार पेड़।","Higher-value orchard needing reliable drip water.":"ज़्यादा कीमत वाला बाग; भरोसेमंद ड्रिप सिंचाई चाहिए।","Tolerates salinity, high establishment cost.":"खारापन सह लेता है; लगाने की लागत ज़्यादा।","Hardy orchard fruit.":"मज़बूत फलदार पेड़।","Drought-hardy fruit tree.":"सूखा सहने वाला फलदार पेड़।","Hardy fruit and vegetable tree.":"मज़बूत पेड़, फल और सब्ज़ी दोनों देता है।","Orchard fruit needing regular water.":"बाग का फल; नियमित पानी चाहिए।","Citrus, salinity-sensitive.":"नींबू वर्गीय फल; खारेपन से नुकसान।","Medicinal crop, low water need, market dependent.":"औषधीय फसल; कम पानी चाहिए, बिक्री मंडी पर निर्भर।","Hardy perennial shrub, market dependent.":"कई साल चलने वाली मज़बूत झाड़ी; बिक्री मंडी पर निर्भर।","Spice vegetable needing irrigation.":"मसाला सब्ज़ी; सिंचाई चाहिए।","Fruit vegetable.":"फल वाली सब्ज़ी।","Bulb vegetable, salinity-sensitive.":"कंद वाली सब्ज़ी; खारेपन से नुकसान।","Summer melons on sandy soils with irrigation.":"रेतीली मिट्टी में सिंचाई से गर्मी के तरबूज-खरबूजे।",
+"Needs structure, cooling and good-quality water.":"ढांचा, ठंडक और अच्छा पानी चाहिए।","High investment, strong climate control needed.":"ज़्यादा निवेश; अंदर का तापमान और नमी पूरी तरह संभालनी पड़ती है।","High investment, needs ventilation and fertigation.":"ज़्यादा निवेश; हवा की आवाजाही और सिंचाई के पानी के साथ खाद देना ज़रूरी।","Native nitrogen-fixing tree for agroforestry.":"देसी पेड़, मिट्टी में नाइट्रोजन जोड़ता है; खेत में पेड़ लगाने के लिए।","Native timber tree, slow growing.":"देसी इमारती लकड़ी का पेड़; धीरे बढ़ता है।","Native perennial range grass for grazing.":"चराई के लिए कई साल चलने वाली देसी घास।","Perennial pasture grass.":"कई साल चलने वाली चारागाह घास।","Irrigated rabi fodder legume.":"सिंचित रबी चारा दलहन।","Perennial irrigated fodder legume.":"कई साल चलने वाली सिंचित चारा दलहन।","Monsoon fodder.":"मानसून का चारा।","Legume fodder.":"दलहनी चारा।","High-yield irrigated fodder.":"ज़्यादा पैदावार वाला सिंचित चारा।"};
+const HM={Jan:"जनवरी",Feb:"फ़रवरी",Mar:"मार्च",Apr:"अप्रैल",May:"मई",Jun:"जून",Jul:"जुलाई",Aug:"अगस्त",Sep:"सितंबर",Oct:"अक्टूबर",Nov:"नवंबर",Dec:"दिसंबर"};
+// A filled-in value: use its Hindi word if there is one, and write month names in Hindi (dates such as "8 Nov 2026").
+const trv=v=>{v=v.trim();return H[v]||v.replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g,m=>HM[m])};
+let LANG=(()=>{try{return localStorage.getItem("fsLang")||"en"}catch(e){return"en"}})();
+const PAT=Object.keys(H).filter(k=>/\{\d\}/.test(k)).sort((a,b)=>b.length-a.length).map(/* longest, most specific pattern first */k=>[new RegExp("^"+k.replace(/[.*+?^$()|[\]\\]/g,"\\$&").replace(/\{\d\}/g,"(.+?)")+"$"),H[k]]);
+function tx(s){const t=s.trim();if(!t)return null;if(H[t])return H[t];for(const [re,h] of PAT){const m=t.match(re);if(m)return h.replace(/\{(\d)\}/g,(_,i)=>trv(m[i]))}return null}
+function trNode(n){if(n.__en===undefined)n.__en=n.data;if(LANG==="en"){if(n.data!==n.__en)n.data=n.__en;return}const r=tx(n.__en);if(r!=null)n.data=n.__en.match(/^\s*/)[0]+r+n.__en.match(/\s*$/)[0]}
+function tr(root){const w=document.createTreeWalker(root||document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>/SCRIPT|STYLE/.test(n.parentNode.nodeName)?2:1});let n;while(n=w.nextNode())trNode(n);
+ document.querySelectorAll("[placeholder]").forEach(e=>{if(e.__en===undefined)e.__en=e.placeholder;e.placeholder=LANG==="hi"?(H[e.__en]||e.__en):e.__en});
+ document.querySelectorAll("[aria-label]").forEach(e=>{if(e.__al===undefined)e.__al=e.getAttribute("aria-label");if(H[e.__al])e.setAttribute("aria-label",LANG==="hi"?H[e.__al]:e.__al)})}
+new MutationObserver(ms=>{if(LANG!=="hi")return;ms.forEach(m=>m.addedNodes.forEach(a=>a.nodeType===3?trNode(a):a.nodeType===1&&tr(a)))}).observe(document.body,{childList:true,subtree:true});
+function apply(){document.documentElement.lang=LANG;document.title=LANG==="hi"?"बदलते खेत: नासा डेटा के साथ":"Field Shift: Adapting Farms with NASA Data";$("l-en").setAttribute("aria-pressed",LANG==="en");$("l-hi").setAttribute("aria-pressed",LANG==="hi");tr()}
+const setLang=l=>{LANG=l;try{localStorage.setItem("fsLang",LANG)}catch(e){}apply()};$("l-en").onclick=()=>setLang("en");$("l-hi").onclick=()=>setLang("hi");
+document.querySelectorAll("[data-go2]").forEach(b=>b.onclick=()=>{window.__nav=true;location.hash=b.dataset.go2});
+// Top bar on every page (user's request, 13 Nov 2026): Home on the left, a ☰ menu with every page and the language on the right.
+const MENU=$("menu"),mOpen=o=>{MENU.hidden=!o;$("tbMenu").setAttribute("aria-expanded",o)};
+const goHome=()=>{window.__nav=true;if(location.hash!=="#home")location.hash="home";if(FARM)wshow(0);window.scrollTo(0,0)};
+$("tbMenu").onclick=e=>{e.stopPropagation();mOpen(MENU.hidden)};$("tbHome").onclick=goHome;
+document.addEventListener("click",e=>{if(!MENU.hidden&&!MENU.contains(e.target))mOpen(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")mOpen(false)});
+MENU.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{mOpen(false);const m=b.dataset.m;if(m==="home")goHome();else if(m==="about"){goHome();if(!FARM)wshow(1);setTimeout(()=>$("abouth").scrollIntoView(),80)}else{window.__nav=true;location.hash=m}});
+MENU.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{mOpen(false);setLang(b.dataset.l)});
+// Data updates. data.json holds the satellite greenness and the weather up to the last collection run.
+// Each time the app opens (and when the button is pressed), it also asks NASA POWER directly for the newest
+// rain and temperature at each district's point, for the part-year only. Both are saved on the phone, so the
+// app still works without internet and says how old the data is.
+function mergeLive(){if(!D||!LIVE||!LIVE.districts)return;for(const n in LIVE.districts){const dd=D.districts[n];if(!dd||!dd.climate)continue;for(const y in LIVE.districts[n]){const l=LIVE.districts[n][y],f=dd.climate[y];if(l.last_day&&(!f||!f.last_day||l.last_day>f.last_day))dd.climate[y]=Object.assign({},l,{live:1})}}}
+// NASA POWER daily data for one point, summarised by year exactly like pipeline/fetch_nasa_data.annual_power:
+// yearly rain and temperature, plus rain by month, days of 40 °C or more by month, and root-zone soil wetness by month.
+async function powerFetch(lat,lon,start,end){const u="https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR,T2M_MAX,T2M_MIN,GWETROOT&community=AG&latitude="+lat+"&longitude="+lon+"&start="+start+"&end="+end+"&format=JSON";
+ const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),45000);try{const r=await fetch(u,{signal:ac.signal});if(!r.ok)throw r.status;return(await r.json()).properties.parameter}finally{clearTimeout(tm)}}
+function summarise(P){const R=P.PRECTOTCORR,TX=P.T2M_MAX,TN=P.T2M_MIN,GW=P.GWETROOT||{},ok=v=>typeof v==="number"&&v>-900,res={},out={};
+ Object.keys(R).sort().forEach(k=>{const y=k.slice(0,4),m=+k.slice(4,6)-1,o=res[y]=res[y]||{r:[],x:[],n:[],last:null,rm:Array(12).fill(null),hm:Array(12).fill(null),wm:Array.from({length:12},()=>[])};
+  if(ok(R[k])){o.r.push(R[k]);o.last=k;o.rm[m]=(o.rm[m]||0)+R[k]}if(ok(TX[k])){o.x.push(TX[k]);o.hm[m]=(o.hm[m]||0)+(TX[k]>=40?1:0)}if(ok(TN[k]))o.n.push(TN[k]);if(ok(GW[k]))o.wm[m].push(GW[k])});
+ const r1=v=>Math.round(v*10)/10,av=a=>a.length?r1(a.reduce((s,v)=>s+v,0)/a.length):null;
+ for(const y in res){const o=res[y];if(!o.last)continue;out[y]={last_day:o.last.slice(0,4)+"-"+o.last.slice(4,6)+"-"+o.last.slice(6),rain_mm:r1(o.r.reduce((s,v)=>s+v,0)),mean_tmax_c:av(o.x),mean_tmin_c:av(o.n),valid_rain_days:o.r.length,valid_tmax_days:o.x.length,valid_tmin_days:o.n.length,
+  rain_month_mm:o.rm.map(v=>v==null?null:r1(v)),days_40c_month:o.hm,days_40c:o.hm.reduce((s,v)=>s+(v||0),0),soil_wet_month:o.wm.map(a=>a.length?Math.round(a.reduce((s,v)=>s+v,0)/a.length*1000)/1000:null)}}
+ return out}
+async function liveWeather(){const now=new Date(),end=iso(now).replace(/-/g,""),out={};
+ await Promise.all(Object.keys(D.districts).map(async n=>{const dd=D.districts[n];if(dd.lat==null||!dd.climate)return;
+  const inc=Object.keys(dd.climate).find(y=>!full(dd.climate[y]))||String(now.getFullYear());
+  out[n]=summarise(await powerFetch(dd.lat,dd.lon,inc+"0101",end))}));
+ return out}
+// Weather at the farmer's own location (rounded to 0.1 degree, about 10 km) after "Use my location". Complete years
+// are fetched once and kept on the phone; after that only the current year is fetched again.
+async function myWeather(){if(!FARM||FARM.lat==null)return;const now=new Date(),end=iso(now).replace(/-/g,""),same=MINE&&MINE.lat===FARM.lat&&MINE.lon===FARM.lon&&MINE.climate;
+ const start=same?(Object.keys(MINE.climate).find(y=>!full(MINE.climate[y]))||String(now.getFullYear()))+"0101":"20210101";
+ const s=summarise(await powerFetch(FARM.lat,FARM.lon,start,end));MINE={lat:FARM.lat,lon:FARM.lon,fetched:iso(now),climate:Object.assign(same?MINE.climate:{},s)};LSS("fsMine",MINE)}
+async function loadPub(manual){const b=$("chk");UPD="checking";b.disabled=true;updMsg();
+ let f=null;try{const r=await fetch("data.json",{cache:"no-store"});if(r.ok){const j=await r.json();if(j&&j.districts)f=j}}catch(e){}
+ if(f)LSS("fsData",f);else f=LSG("fsData");
+ if(f){D=f;$("note").hidden=true}
+ if(D&&D.districts&&!/PLACEHOLDER/.test(D.generated||"")){try{const L=await liveWeather();LIVE={fetched:iso(new Date()),districts:L};LSS("fsLive",LIVE);UPD="live";await myWeather()}catch(e){UPD=navigator.onLine===false?"offline":"nasafail"}mergeLive()}
+ else UPD=D?"file":"none";
+ b.disabled=false;draw();if(!$("w2").hidden){wcrops();wmark()}} // crop lists use this year's NASA rain
+$("chk").onclick=()=>loadPub(true);addEventListener("online",()=>loadPub(false));loadPub(false);
+// ---- Three-question start: where is the field, what is usually grown, what water. Answers stay on the phone. ----
+// Map on the climate page (13 Nov 2026, user's request): OpenStreetMap through Leaflet, loaded only when that page opens.
+// The view always covers the three districts, so map requests are the same for every farmer and reveal no location;
+// the farmer's rounded area is drawn on the phone only. Without internet a short note shows instead.
+let LMAP=null,LLAY=null,LLOAD=null,DGEO=null; // DGEO: district outlines (districts.json, OpenStreetMap, simplified)
+function loadLeaflet(){if(window.L)return Promise.resolve();if(LLOAD)return LLOAD;
+ LLOAD=new Promise((ok,bad)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c);
+  const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=ok;s.onerror=()=>{LLOAD=null;s.remove();bad()};document.head.appendChild(s)});return LLOAD}
+async function drawMap(){const box=$("map"),note=$("mapnote");if(!box)return;
+ try{await loadLeaflet()}catch(e){box.hidden=true;note.textContent="The map needs internet. It will show when you are online.";return}
+ if(!DGEO)try{DGEO=(await (await fetch("districts.json")).json()).districts}catch(e){DGEO=null}
+ box.hidden=false;note.textContent="Green: your district. Small squares: the 10 km farmland areas where NASA weather and satellite greenness are read. District outlines: OpenStreetMap.";
+ if(!LMAP){LMAP=L.map(box,{zoomSnap:.25,scrollWheelZoom:false,dragging:!L.Browser.mobile,zoomControl:false});L.control.zoom({zoomInTitle:"",zoomOutTitle:""}).addTo(LMAP);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:16,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(LMAP);LMAP.attributionControl.setPrefix(false)}
+ if(LLAY)LLAY.remove();LLAY=L.layerGroup().addTo(LMAP);const dn=$("dist").value,pts=[];
+ // Whole districts: the chosen one filled green, the others a thin dashed grey line (13 Nov 2026, user's request).
+ if(DGEO)for(const d in DGEO){const on=d===dn;pts.push(...DGEO[d]);
+  L.polygon(DGEO[d],{color:on?"#15803d":"#64748b",weight:on?3:1.5,dashArray:on?null:"5 5",fillColor:on?"#22c55e":"#94a3b8",fillOpacity:on?.3:.06,interactive:false})
+   .bindTooltip(d,{permanent:true,direction:"center",className:on?"mtip on":"mtip"}).addTo(LLAY)}
+ for(const d in SITES){const[la,lo]=SITES[d],on=d===dn;pts.push([la,lo]);
+  L.rectangle([[la-.05,lo-.05],[la+.05,lo+.05]],{color:on?"#14532d":"#475569",weight:2,fillColor:on?"#14532d":"#475569",fillOpacity:.6})
+   .bindPopup(`<b>${d}</b><br><span>Farmland sample area (about 10 km). NASA weather and greenness for ${d} come from here.</span>`).addTo(LLAY)}
+ if(FARM&&FARM.lat!=null&&FARM.lon!=null)L.circleMarker([Math.round(FARM.lat*10)/10,Math.round(FARM.lon*10)/10],{radius:9,color:"#2563eb",fillOpacity:.6}).bindTooltip("Your area",{permanent:true,direction:"bottom"}).addTo(LLAY);
+ LMAP.invalidateSize();LMAP.fitBounds(L.latLngBounds(pts).pad(.04))}
+const SITES={Jodhpur:[26.59,72.97],Barmer:[26.15,71.35],Sikar:[27.46,74.94]}; // farmland sample points (same as the data)
+const WL={rain:"Rain only",lim:"Some irrigation",irr:"Enough irrigation"};
+let WZ=Object.assign({dist:null,k:null,r:null,water:null},FARM||{});
+const copt=s=>'<option value="">Choose a crop</option>'+C.filter(c=>c.s===s&&c.sys==="open").map(c=>`<option value="${c.n}">${c.n}</option>`).join("");
+// Crop step (decided 12 Nov 2026): only crops that can suit the season and area show as tiles, and the winter list
+// depends on the monsoon crop chosen. Water is asked after the crops, so a crop counts as suitable if score() rates it
+// at least "Possible" with some kind of water (rain only, some irrigation or enough irrigation). The district's NASA
+// rules (dry year, rain swing, arid zone) count; soil tests are not asked here. Poor-fit crops are tiles under "Other"
+// (13 Nov 2026), marked Poor fit with the main reason, so a farmer can still say what they really grow.
+const CT={k:["Bajra (pearl millet)","Moth bean","Guar","Sesame","Cotton"],r:["Mustard","Gram (chickpea)","Wheat","Cumin","Barley","Taramira (rocket)"]},
+ ICO={"Bajra (pearl millet)":"🌾","Moth bean":"🌱","Guar":"🌱","Sesame":"🌼","Cotton":"🌿","Mustard":"🌼","Gram (chickpea)":"🌱","Wheat":"🌾","Cumin":"🍃","Barley":"🌾","Taramira (rocket)":"🌼"},WC={},UI={};
+function cropLists(p){const N=(WZ.dist&&nasaFacts(WZ.dist))||{},x=WZ.dist?cv(WZ.dist):null,prev=p==="r"?WZ.k:null,ok=[],poor=[],S={},
+  st={tex:"",oc:null,ph:null,ec:null,cv:x&&x.cv,rainPct:N.rainNow!=null&&N.rainUsual>0?Math.round(N.rainNow/N.rainUsual*100):null,arid:ARID_ZONE.includes(WZ.dist)};
+ C.filter(c=>c.s===(p==="k"?"K":"R")&&c.sys==="open").forEach(c=>{const f=["rain","lim","irr"].map(w=>score(c,prev,Object.assign({},st,{water:w}))).reduce((a,b)=>b.s>a.s?b:a);S[c.n]=f.s;(f.s>=1?ok:poor).push({n:c.n,why:f.why})});
+ const okN=ok.map(o=>o.n).sort((a,b)=>S[b]-S[a]),tiles=CT[p].filter(n=>okN.includes(n)).sort((a,b)=>S[b]-S[a]); // best fit first
+ return{ok:okN,tiles,more:okN.filter(n=>!tiles.includes(n)),poor}}
+function wcrops(){WC.k=cropLists("k");WC.r=WZ.k?cropLists("r"):null;$("rfirst").hidden=!!WZ.k;$("rbox").hidden=!WZ.k;
+ ["k","r"].forEach(p=>{const L=WC[p];if(!L)return;
+  const T=(n,x,c)=>`<button class="${c||"ct"}" data-${p}="${n}"><span>${ICO[n]||"🌱"}</span>${n}${x||""}</button>`;
+  $(p+"tiles").innerHTML=L.tiles.map(n=>T(n)).join("")+(L.more.length||L.poor.length||p==="r"?`<button class="ct" data-${p}="*"><span>➕</span>Other</button>`:"");
+  $(p+"more").innerHTML=L.more.map(n=>T(n,"","cl")).join("")+L.poor.map(o=>T(o.n,'<small class="pfm">Poor fit</small>',"cl")).join("")+(p==="r"?'<button class="cl" data-r="Fallow / none"><span>⭕</span>Nothing (field left empty)</button>':"");
+  $(p+"none").hidden=L.ok.length>0})}
+function wmark(){document.querySelectorAll("[data-d]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.d===WZ.dist));
+ ["k","r"].forEach(p=>{const L=WC[p];if(!L)return;const v=WZ[p],inMore=!!v&&!L.tiles.includes(v),pf=L.poor.find(o=>o.n===v);
+  if(UI[p+"o"]==null)UI[p+"o"]=inMore;
+  $(p+"tiles").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset[p]===v||(b.dataset[p]==="*"&&(inMore||UI[p+"o"]))));
+  $(p+"more").hidden=!(UI[p+"o"]||!L.ok.length);
+  $(p+"more").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset[p]===v));
+  $(p+"why").hidden=!pf;$(p+"why").innerHTML=pf?`<b>❌ Poor fit here.</b> <span>${pf.why.find(w=>NEG.test(w))||"The app's crop rules give this crop no points here."}</span> <span>You can still choose it. Your plans will show other choices.</span>`:""});
+ document.querySelectorAll("[data-w]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.w===WZ.water));
+ document.querySelectorAll("[data-soil]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.soil===WZ.tex));
+ document.querySelectorAll("[data-crust]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.crust===WZ.salt));
+ $("wloc1").textContent=WZ.dist?"📍 "+WZ.dist:""}
+function soilLine(f){return[{s:"Sandy soil",l:"Loamy soil",h:"Heavy (clay) soil"}[f.tex],f.salt==="y"?"White salt crust seen":""].filter(Boolean).map(x=>`<span>${x}</span>`).join(" · ")}
+function wshow(n){["w1","w2","w3","w4","wdone"].forEach(id=>$(id).hidden=id!==(n?"w"+n:"wdone"));["abouth","aboutc"].forEach(i=>$(i).style.display=n>1?"none":"");/* About only on the first home screen (13 Nov 2026) */if(n===2)wcrops();wmark();if(!n&&FARM){const sl=soilLine(FARM);$("wsum").innerHTML=`<span>${FARM.dist} · ${FARM.k} → ${FARM.r} · ${WL[FARM.water]}</span>`+(sl?`<br>${sl}`:"")}}
+function applyFarm(){if(!FARM)return;$("dist").value=FARM.dist;$("water").value=FARM.water;if(FARM.tex)$("tex").value=FARM.tex;["oc","ph","ec"].forEach(i=>{if(FARM[i]!=null)$(i).value=FARM[i]});const m=new Date().getMonth()+1,nx=(m>=3&&m<=5)||m===12||m<=2?"K":"R";$("season").value=nx;$("prev").value=nx==="K"?FARM.r:FARM.k}
+document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{WZ.dist=b.dataset.d;delete WZ.lat;delete WZ.lon;$("wloc").innerHTML="";wshow(2)});
+// A new monsoon crop clears a winter crop that no longer suits after it, so the winter list always follows the first choice.
+function wpick(p){$("w2err").textContent="";if(p==="k"&&WZ.k&&WZ.r&&WZ.r!=="Fallow / none"&&!cropLists("r").ok.includes(WZ.r))WZ.r=null;wcrops();wmark()}
+["k","r"].forEach(p=>{
+ // "Other" opens (or closes) more crop tiles below: other suitable crops, then poor-fit ones marked, then (winter) Nothing.
+ $(p+"tiles").onclick=e=>{const b=e.target.closest("button");if(!b)return;const v=b.dataset[p];
+  if(v==="*"){UI[p+"o"]=!UI[p+"o"];if(UI[p+"o"]&&WC[p].tiles.includes(WZ[p]))WZ[p]=null}else{UI[p+"o"]=false;WZ[p]=v}
+  wpick(p);if(v==="*"&&UI[p+"o"])$(p+"more").scrollIntoView({block:"nearest",behavior:"smooth"})};
+ $(p+"more").onclick=e=>{const b=e.target.closest("button");if(!b)return;WZ[p]=b.dataset[p];wpick(p)}});
+document.querySelectorAll("[data-wb]").forEach(b=>b.onclick=()=>wshow(+b.dataset.wb));
+$("w2next").onclick=()=>{if(!WZ.k||!WZ.r){$("w2err").textContent="Pick one crop for each season.";return}wshow(3)};
+document.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>{WZ.water=b.dataset.w;$("w3err").textContent="";wmark()});
+$("w3next").onclick=()=>{if(!WZ.water){$("w3err").textContent="Pick how this field gets water.";return}wshow(4)};
+// Step 4, soil (12 Nov 2026): soil type and a white salt crust, both optional; no answer counts as "Not sure".
+document.querySelectorAll("[data-soil]").forEach(b=>b.onclick=()=>{WZ.tex=b.dataset.soil;wmark()});
+document.querySelectorAll("[data-crust]").forEach(b=>b.onclick=()=>{WZ.salt=b.dataset.crust;wmark()});
+$("wgo").onclick=()=>{if(!WZ.water){wshow(3);$("w3err").textContent="Pick how this field gets water.";return}FARM={dist:WZ.dist,k:WZ.k,r:WZ.r,water:WZ.water,tex:WZ.tex||"u",salt:WZ.salt||"u",oc:$("oc").value,ph:$("ph").value,ec:$("ec").value};if(WZ.lat!=null){FARM.lat=WZ.lat;FARM.lon=WZ.lon}LSS("fsFarm",FARM);applyFarm();draw();wshow(0);window.__nav=true;location.hash="plans";
+ if(FARM.lat!=null)myWeather().then(draw).catch(()=>{})}; // weather for the farmer's own location, when they used it
+$("wshow").onclick=()=>{window.__nav=true;location.hash="plans"};
+[$("wrep"),$("toreport")].forEach(b=>b.onclick=()=>{window.__nav=true;location.hash="report"});
+$("rprint").onclick=()=>window.print(); // the phone's print screen also offers "Save as PDF"
+// Share the report as a PDF file through the phone's share menu (WhatsApp etc.); where files cannot be shared, the PDF
+// is downloaded. If making the PDF fails, the report text is shared as before.
+let RPDF=null;
+$("rshare").onclick=async()=>{const b=$("rshare"),L0="📤 Share report (PDF)",key=LANG+$("report").innerText;
+ try{if(!RPDF||RPDF.key!==key){b.disabled=true;b.textContent="Making PDF…";RPDF={key,f:new File([await reportPdf()],"farm-report.pdf",{type:"application/pdf"})}}b.disabled=false;b.textContent=L0;
+  if(navigator.canShare&&navigator.canShare({files:[RPDF.f]}))await navigator.share({files:[RPDF.f],title:LANG==="hi"?H["My farm report"]:"My farm report"}).catch(e=>{if(e.name==="NotAllowedError")b.textContent="PDF ready: tap again to share"});
+  else{const a=document.createElement("a");a.href=URL.createObjectURL(RPDF.f);a.download="farm-report.pdf";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);b.textContent="PDF saved to your downloads"}}
+ catch(e){b.disabled=false;b.textContent=L0;const txt=$("report").innerText.trim();if(navigator.share)navigator.share({text:txt}).catch(()=>{});else navigator.clipboard.writeText(txt).then(()=>{b.textContent="Copied"}).catch(()=>{})}};
+$("wedit").onclick=()=>wshow(1);
+["dist","water","tex","oc","ph","ec"].forEach(i=>$(i).addEventListener("input",()=>{if(FARM){FARM[i]=$(i).value;WZ[i]=FARM[i];if(i==="dist"){delete FARM.lat;delete FARM.lon;delete WZ.lat;delete WZ.lon}LSS("fsFarm",FARM);wshow(0);draw()}}));
+const km=(a,b,c,d)=>{const t=x=>x*Math.PI/180,h=Math.sin(t(c-a)/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(t(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(h))};
+$("gps").onclick=()=>{const m=$("gpsmsg");if(!navigator.geolocation){m.className="err";m.textContent="Location is not available on this phone. Tap your district.";return}
+ m.className="sm mute";m.textContent="Finding your location…";
+ navigator.geolocation.getCurrentPosition(p=>{let best=null,bd=1e9;for(const n in SITES){const x=km(p.coords.latitude,p.coords.longitude,SITES[n][0],SITES[n][1]);if(x<bd){bd=x;best=n}}
+  m.textContent="";WZ.dist=best;WZ.lat=Math.round(p.coords.latitude*10)/10;WZ.lon=Math.round(p.coords.longitude*10)/10; // rounded to about 10 km
+  $("wloc").innerHTML=`<span>Closest area with NASA data: ${best}, ${Math.round(bd)} km away.</span> <span>Rain, heat and soil will be for your own location.</span>`+(bd>100?' <span class="err" style="display:block">Your field may be outside the three districts this app covers.</span>':"");wshow(2)},
+  e=>{m.className="err";m.textContent=geoErr(e,"or tap your district below.")},{enableHighAccuracy:false,timeout:15000,maximumAge:600000})};
+// Say why location failed and what to do (code 1: blocked for this site, 2: phone cannot find itself, 3: too slow).
+const geoErr=(e,alt)=>e&&e.code===1?"Location is blocked for this app. Allow location for this site in your browser settings, "+alt:e&&e.code===2?"Your phone could not find where it is. Turn on location (GPS) and try again.":e&&e.code===3?"Finding your location took too long. Please try again.":"Could not get your location. Please try again.";
+// Field location from the phone (decided 12 Nov 2026). The phone may not be at the field (home, town, mandi), so the app
+// never moves the saved field by itself: on opening, if the phone is more than 10 km from the saved place, it asks "Is
+// your field here?". It checks only when the farmer has already allowed location, so no permission box pops up on open,
+// and nothing is sent anywhere unless they answer Yes. A place where they said No (about 10 km) is not asked about again.
+function nearest(la,lo){let best=null,bd=1e9;for(const n in SITES){const x=km(la,lo,SITES[n][0],SITES[n][1]);if(x<bd){bd=x;best=n}}return[best,bd]}
+let HERE=null;
+function setField(la,lo){const best=nearest(la,lo)[0];Object.assign(FARM,{dist:best,lat:la,lon:lo});Object.assign(WZ,{dist:best,lat:la,lon:lo});LSS("fsFarm",FARM);applyFarm();draw();wshow(0);myWeather().then(draw).catch(()=>{})}
+const r10=v=>Math.round(v*10)/10; // rounded to about 10 km
+function checkHere(){if(!FARM||!navigator.geolocation)return;
+ const go=()=>navigator.geolocation.getCurrentPosition(p=>{const la=r10(p.coords.latitude),lo=r10(p.coords.longitude),sv=FARM.lat!=null?[FARM.lat,FARM.lon]:SITES[FARM.dist],no=LSG("fsNotField")||[];
+  if(!sv)return;const d=km(la,lo,sv[0],sv[1]);if(d<=10||no.some(x=>km(la,lo,x[0],x[1])<=10))return;HERE=[la,lo];
+  $("heremsg").innerHTML=`<span>📍 Your phone is about ${Math.round(d)} km from the place saved for your field.</span> <b>Is your field here?</b>`+(nearest(la,lo)[1]>100?' <span class="err" style="display:block">This place may be outside the three districts this app covers.</span>':"");$("here").hidden=false},()=>{},{enableHighAccuracy:false,timeout:15000,maximumAge:600000});
+ if(navigator.permissions&&navigator.permissions.query)navigator.permissions.query({name:"geolocation"}).then(s=>{if(s.state==="granted")go()}).catch(()=>{});else if(FARM.lat!=null)go()}
+$("hereyes").onclick=()=>{$("here").hidden=true;if(HERE)setField(HERE[0],HERE[1])};
+$("hereno").onclick=()=>{$("here").hidden=true;if(HERE){const no=LSG("fsNotField")||[];no.push(HERE);LSS("fsNotField",no.slice(-10))}};
+$("gps2").onclick=()=>{const m=$("gps2msg");if(!navigator.geolocation){m.className="err";m.textContent="Could not get your location. Please try again.";return}
+ m.className="sm mute";m.textContent="Finding your location…";$("here").hidden=true;
+ navigator.geolocation.getCurrentPosition(p=>{const la=r10(p.coords.latitude),lo=r10(p.coords.longitude),[best,bd]=nearest(la,lo);setField(la,lo);
+  m.innerHTML=`<span>Closest area with NASA data: ${best}, ${Math.round(bd)} km away.</span> <span>Rain, heat and soil will be for your own location.</span>`+(bd>100?' <span class="err" style="display:block">Your field may be outside the three districts this app covers.</span>':"")},
+  e=>{m.className="err";m.textContent=geoErr(e,"or tap ✏️ Change answers to pick your district.")},{enableHighAccuracy:false,timeout:15000,maximumAge:0})};
+applyFarm();wshow(FARM?0:1);checkHere();
+(function(){
+const TMAP={"Your three crop plans":"plans","My farm report":"report","More farm details":"field","rotation plan":"plan","Soil health":"soil","Climate adaptation with NASA":"climate","Adaptation actions":"actions","Economics":"money","Crop rules":"rules"};
+const DESC={plans:"Three crop plans for your field, side by side: what you grow now, a plan that saves water, and a plan that builds soil. Tap a plan to see why it was picked.",
+report:"A one-page summary of your field, what NASA sees, and your three plans. Print it, save it, or share it.",
+field:"Optional details that make the plans better: water, soil type, farming system, money and labour. Skip anything you do not know.",
+plan:"A four-season rotation and a ranked list of crops for the next season. Rotation matters because growing the same crop family back to back builds up pests and diseases, while legumes add nitrogen to the soil.",
+soil:"Soil health readings from your soil test: organic carbon, pH and salinity (EC). Without a soil test the app does not guess.",
+climate:"Rain, heat and greenness (NDVI) from NASA data for your district. NDVI shows how green the land is, which hints at plant vigour but is not a yield forecast.",
+actions:"General steps for coping with dry spells, heat, wind and salty soils. These are practices to discuss with your local agriculture office, not prescriptions.",
+money:"Work out costs, revenue and break-even prices from your own figures. The app holds no price or cost data.",
+rules:"The simple agronomy rules behind the ratings. They are starter rules and need checking against Rajasthan advisories."};
+const pk=t=>{for(const k in TMAP)if(t.includes(k))return TMAP[k];if(t.includes("Farming system"))return"field";if(t.includes("Options for"))return"plan";if(t.includes("Disclaimer")||t.includes("About DesertCrop"))return"about";return null};
+const m=document.querySelector("main"),kids=[...m.children],ni=kids.findIndex(e=>e.classList.contains("tiles")),home=document.createElement("div"),PAGES={};
+home.id="home";m.insertBefore(home,kids[0]);kids.slice(0,ni+1).forEach(e=>home.appendChild(e));
+let cur=null;
+kids.slice(ni+1).forEach(e=>{if(e.tagName==="H2")cur=pk(e.textContent);if(cur==="about"){home.appendChild(e);return}if(!cur)return;
+ if(!PAGES[cur]){const sct=document.createElement("section");sct.className="page";sct.hidden=true;
+  sct.innerHTML='<p class="desc">'+DESC[cur]+'</p>';
+  m.appendChild(sct);PAGES[cur]=sct}
+ PAGES[cur].appendChild(e)});
+// The farm report is not in the Continue flow (13 Nov 2026, user's request): it opens only from its own buttons and has Back only.
+const ORDER=["plans","field","plan","soil","climate","actions","money","rules"];
+{const nv=document.createElement("div");nv.className="pnav";nv.innerHTML='<button class="alt">← Back</button>';
+ nv.children[0].onclick=()=>{if(window.__nav)history.back();else location.replace("#home")};PAGES.report.appendChild(nv)}
+ORDER.forEach((k,i)=>{const last=i===ORDER.length-1,nv=document.createElement("div");nv.className="pnav";
+ nv.innerHTML='<button class="alt">← Back</button><button>'+(last?"Finish":"Continue →")+'</button>';
+ nv.children[0].onclick=()=>{if(window.__nav)history.back();else location.replace("#home")};
+ nv.children[1].onclick=()=>{window.__nav=true;location.hash=last?"home":ORDER[i+1]};PAGES[k].appendChild(nv)});
+document.querySelectorAll(".tiles button").forEach(b=>b.onclick=()=>{window.__nav=true;location.hash=TMAP[b.dataset.t]});
+function route(){const k=location.hash.slice(1),ok=PAGES[k]?k:"home";home.hidden=ok!=="home";for(const x in PAGES)PAGES[x].hidden=x!==ok;$("tbHome").hidden=$("tbt").hidden=ok==="home";$("menu").hidden=true;if(ok==="climate")drawMap();window.scrollTo(0,0)}
+addEventListener("hashchange",route);route();
+})();
+draw();apply();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script></body></html>
