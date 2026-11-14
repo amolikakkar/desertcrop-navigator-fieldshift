@@ -13,7 +13,9 @@ A farmer answers 4 picture questions (field location, usual crops, water, soil) 
 - **3 rotation plans compared**: what you grow now, crops that save water, crops that build soil, each with why,
   evidence, benefits, gaps and what to check with the local farm science centre (KVK)
 - **What NASA sees**: rain this year vs usual, hot days, soil moisture, field greenness, and a map
-- A shareable **PDF farm report**, in Hindi or English, working offline after the first visit
+- Optional **farm details** (farming system, investment, credit, market, labour, risk), **Soil Health Card numbers**
+  (organic carbon, pH, EC) and a **money calculator** using the farmer's own figures (no outside data)
+- A shareable **PDF farm report** with all of the above, in Hindi or English, working offline after the first visit
 
 ## Run it locally
 ```bash
@@ -36,7 +38,8 @@ districts, and fields in Jodhpur and Barmer were **27–31% less green** after t
 ## How crops are rated
 Simple, explainable points: water need vs the farmer's water, salt tolerance, previous crop (legumes add nitrogen),
 plus three NASA rules: **dry year** (rain below 80% of usual), **arid zone** (Jodhpur, Barmer) and **rain swing**
-(≥ 30% between years). 3+ points = Good fit, 1–2 = Possible, 0 or less = Poor fit.
+(≥ 30% between years). Optional farm details and soil test numbers adjust points too (e.g. EC above 4 dS/m = salty
+soil, per the Soil Health Card rating). 3+ points = Good fit, 1–2 = Possible, 0 or less = Poor fit.
 
 ## Repository
 ```

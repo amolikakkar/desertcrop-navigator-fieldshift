@@ -445,6 +445,20 @@ What covered the old town squares, according to the ESA WorldCover 2021 land-cov
 
 ---
 
+## 7a. Farmer's own details, soil test and money (no outside data)
+
+These optional parts of the app use **only what the farmer enters**. No NASA, space agency or other data is used, and
+the app holds no prices or costs.
+
+| Part | What the farmer enters | How the app uses it |
+|---|---|---|
+| Farm details | Farming system, investment capacity, credit, market access, labour, risk tolerance | Lowers crops that need high investment (with low capacity, no credit or low risk tolerance), more labour (when labour is scarce), or are perishable (when the market is far). The farming system picks which crops are listed. |
+| Soil test | Organic carbon (%), pH, EC (dS/m) from a Soil Health Card | EC above 4 dS/m counts as salty soil (the Soil Health Card rating, ICAR-IISS) and lowers salt-sensitive crops. Organic carbon below 0.5% favours legumes. pH above 8.5 or below 6.5 is flagged for expert advice. |
+| Money | Area, cost per acre, expected yield and price, capital cost and its life | Arithmetic only: revenue, cost, net return, break-even price and yield, and the result if price or yield falls 20%. Not a forecast. |
+
+The organic carbon and pH bands are common Indian soil-test classes; they have not yet been checked against the
+official Soil Health Card table. All of these rules still need checking by agriculture experts.
+
 ## 8. Caveats: please read before presenting
 
 1. **Rainfall and temperature are model estimates, not measurements.** NASA POWER is a modelled product that works in cells about 50 km wide. **Its rain looks too high:** for Jodhpur it gives 469 mm in a usual year (2021–2025), but the official ICAR-CRIDA district plan gives a normal of 263 mm (2003–2008). The periods differ, but the gap is large. Official normals for Barmer and Sikar are still to be found. Use NASA POWER rain to compare years and months within a district, not as the true amount of rain.
@@ -495,3 +509,4 @@ What covered the old town squares, according to the ESA WorldCover 2021 land-cov
 | 12 Nov 2026 | **"What should I grow next?" answered first.** The plans page now opens with the 3 best crops for the coming season, rated for the farmer's own water and soil after the crop grown before. A new start question asks the soil type (sandy, loamy, heavy) and whether a white salt crust is seen; a crust counts like a salty soil test. Fields with enough irrigation now score +1 for every crop; before, they scored 0, so more water could mean a lower rating. The ranking is by fit, not yield; official district yields are being sourced. |
 | 12 Nov 2026 | **Usual yields added** next to each suggested crop, from Government of India crop statistics (Directorate of Economics and Statistics, Area-Production-Yield data, 2018-19 to 2022-23): the district average plus the poorest and best year, in quintals per hectare. Example: bajra in Barmer averages 5.8 q/ha but ranged from 1.4 to 12.2, which shows how much the rain decides the harvest there. Only crops grown on at least 1,000 ha in the district are shown; cotton is left out because its unit in the source is unclear. Taramira, isabgol, cumin and some others have no official figure. |
 | 13 Nov 2026 | **Changes from a tester's feedback:** the crop rules are now explained once, on the Crop rules page, with pictures for the farmer's district: this year's rain against a usual year with the 80% "dry year" line (Jodhpur: 278 mm against 462 mm for Jan-Oct, 60%), the arid-zone districts, and rain for each year with the average line. Other pages link there instead of repeating rule text. The crop table spells out the seasons (Kharif, Rabi, Zaid) and explains them in one line. Soil test boxes moved onto the Soil page and are kept on the phone. "Share report" now sends a PDF file. The home page says who the app is for, what it does and how it uses NASA data. |
+| 15 Nov 2026 | **Farm details, soil test and money added to the farm report.** The report now also lists the farmer's own answers on the "More farm details" page (farming system, investment, credit, market, labour, risk), the soil-test reading when Soil Health Card numbers are entered, and the money sums when area, yield and price are entered. These parts use only the farmer's own figures, no NASA or other outside data (see section 7a). |
