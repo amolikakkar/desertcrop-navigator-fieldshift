@@ -7,6 +7,10 @@ using NASA Earth observation data.
 Built for the **NASA Space Apps Challenge 2026**, challenge **"Field Shift: Adapting Farms with NASA Data"**.
 Team DesertCrop Navigator (Amoli Kakkar), Local Event: Jaipur, India.
 
+**▶ Try the live app (no install needed): https://ephemeral-kheer-3e80c6.netlify.app**
+Open it on a phone or computer. To run the same code on your own computer, see
+[Run it on your computer](#run-it-on-your-computer) below.
+
 ---
 
 ## What the app does
